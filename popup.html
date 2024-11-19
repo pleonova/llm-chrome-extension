@@ -2,16 +2,38 @@
 <html>
   <head>
     <title>Webpage Classifier</title>
-    <script src="popup.js"></script>
+    <script src="popup.js" defer></script> <!-- Ensure script is loaded after the DOM -->
     <style>
-      body { font-family: Arial, sans-serif; margin: 10px; }
-      button { padding: 10px 20px; background-color: #4688f1; color: white; border: none; cursor: pointer; }
-      button:hover { background-color: #3367d6; }
+      body {
+        font-family: Arial, sans-serif;
+        margin: 10px;
+      }
+      button {
+        padding: 10px 20px;
+        background-color: #4688f1;
+        color: white;
+        border: none;
+        cursor: pointer;
+      }
+      button:hover {
+        background-color: #3367d6;
+      }
+      #loading {
+        margin-top: 10px;
+        color: #666;
+        font-style: italic;
+      }
+      #result {
+        margin-top: 10px;
+        font-weight: bold;
+        color: #333;
+      }
     </style>
   </head>
   <body>
     <h3>Classify Current Page</h3>
     <button id="classify">Classify</button>
+    <p id="loading" style="display: none;">Classifying...</p>
     <p id="result"></p>
   </body>
 </html>
