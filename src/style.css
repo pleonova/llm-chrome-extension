@@ -1,0 +1,24 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 10px;
+}
+button {
+  padding: 10px 20px;
+  background-color: #4688f1;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+button:hover {
+  background-color: #3367d6;
+}
+#loading {
+  margin-top: 10px;
+  color: #666;
+  font-style: italic;
+}
+#result {
+  margin-top: 10px;
+  font-weight: bold;
+  color: #333;
+}
