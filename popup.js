@@ -9,6 +9,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       resultElement.innerText = ""; // Clear previous result
       extractedTextElement.innerText = ""; // Clear previous text
+      extractedTextElement.style.display = "none"; // Hide extracted text container
       loadingIndicator.style.display = "block"; // Show loading indicator
 
       // Get the current active tab
@@ -37,6 +38,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const pageContent = injectionResults[0].result;
 
             // Display the extracted text
+            extractedTextElement.style.display = "block"; // Show the extracted text container
             extractedTextElement.innerText = `Extracted Text:\n${pageContent}`;
 
             // Send the page content to the background script for classification
