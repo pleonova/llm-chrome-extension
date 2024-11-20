@@ -23,10 +23,10 @@
         color: #666;
         font-style: italic;
       }
-      #result {
+      #source {
         margin-top: 10px;
         font-weight: bold;
-        color: #333;
+        color: #555;
       }
       #extracted-text {
         margin-top: 10px;
@@ -37,7 +37,12 @@
         white-space: pre-wrap;
         border: 1px solid #ddd;
         padding: 5px;
-        display: none; /* Hide by default */
+        display: none; /* Hidden by default */
+      }
+      #result {
+        margin-top: 10px;
+        font-weight: bold;
+        color: #333;
       }
     </style>
   </head>
@@ -45,6 +50,7 @@
     <h3>Classify Current Page</h3>
     <button id="classify">Classify</button>
     <p id="loading" style="display: none;">Classifying...</p>
+    <p id="source"></p>
     <div id="extracted-text"></div>
     <p id="result"></p>
   </body>

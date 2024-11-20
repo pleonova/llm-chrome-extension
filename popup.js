@@ -6,10 +6,12 @@ document.addEventListener("DOMContentLoaded", () => {
       const loadingIndicator = document.getElementById("loading");
       const resultElement = document.getElementById("result");
       const extractedTextElement = document.getElementById("extracted-text");
+      const sourceElement = document.getElementById("source");
 
       resultElement.innerText = ""; // Clear previous result
       extractedTextElement.innerText = ""; // Clear previous text
       extractedTextElement.style.display = "none"; // Hide extracted text container
+      sourceElement.innerText = ""; // Clear previous source
       loadingIndicator.style.display = "block"; // Show loading indicator
 
       // Get the current active tab
@@ -20,11 +22,22 @@ document.addEventListener("DOMContentLoaded", () => {
           return;
         }
 
-        // Extract content from the active tab
+        // Extract main content from the active tab
         chrome.scripting.executeScript(
           {
             target: { tabId: tabs[0].id },
-            func: () => document.body.innerText.substring(0, 5000), // Limit to 5000 characters
+            func: () => {
+              // Attempt to extract main content first
+              const selectors = ["#mw-content-text", "main", "article"];
+              for (let selector of selectors) {
+                const element = document.querySelector(selector);
+                if (element && element.innerText.trim()) {
+                  return { text: element.innerText.substring(0, 5000), source: selector };
+                }
+              }
+              // Fallback to extracting the entire page text
+              return { text: document.body.innerText.substring(0, 5000), source: "all" };
+            },
           },
           (injectionResults) => {
             if (chrome.runtime.lastError) {
@@ -35,15 +48,18 @@ document.addEventListener("DOMContentLoaded", () => {
               return;
             }
 
-            const pageContent = injectionResults[0].result;
+            const pageData = injectionResults[0].result;
+
+            // Display the source of the text
+            sourceElement.innerText = `Source: ${pageData.source}`;
 
             // Display the extracted text
             extractedTextElement.style.display = "block"; // Show the extracted text container
-            extractedTextElement.innerText = `Extracted Text:\n${pageContent}`;
+            extractedTextElement.innerText = `Extracted Text:\n${pageData.text}`;
 
             // Send the page content to the background script for classification
             chrome.runtime.sendMessage(
-              { action: "classifyPage", content: pageContent },
+              { action: "classifyPage", content: pageData.text },
               (response) => {
                 loadingIndicator.style.display = "none"; // Hide loading indicator
                 if (response && response.subject) {
