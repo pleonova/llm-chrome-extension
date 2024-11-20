@@ -3,45 +3,78 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (classifyButton) {
     classifyButton.addEventListener("click", () => {
-      const loadingIndicator = document.getElementById("loading");
       const resultElement = document.getElementById("result");
+      const extractedTextElement = document.getElementById("extracted-text");
+      const sourceElement = document.getElementById("source");
+
+      // Update the button to indicate classification is in progress
+      classifyButton.disabled = true;
+      classifyButton.style.backgroundColor = "#cccccc"; // Change to gray
+      classifyButton.innerText = "Classifying...";
 
       resultElement.innerText = ""; // Clear previous result
-      loadingIndicator.style.display = "block"; // Show loading indicator
+      extractedTextElement.innerText = ""; // Clear previous text
+      extractedTextElement.style.display = "none"; // Hide extracted text container
+      sourceElement.innerText = ""; // Clear previous source
 
       // Get the current active tab
       chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
         if (tabs.length === 0) {
-          loadingIndicator.style.display = "none";
+          classifyButton.disabled = false;
+          classifyButton.style.backgroundColor = ""; // Revert to default color
+          classifyButton.innerText = "Classify"; // Reset button text
           resultElement.innerText = "No active tab found!";
           return;
         }
 
-        // Extract content from the active tab
+        // Extract main content from the active tab
         chrome.scripting.executeScript(
           {
             target: { tabId: tabs[0].id },
-            func: () => document.body.innerText,
+            func: () => {
+              // Attempt to extract main content first
+              const selectors = ["#mw-content-text", "main", "article"];
+              for (let selector of selectors) {
+                const element = document.querySelector(selector);
+                if (element && element.innerText.trim()) {
+                  return { text: element.innerText.substring(0, 5000), source: selector };
+                }
+              }
+              // Fallback to extracting the entire page text
+              return { text: document.body.innerText.substring(0, 5000), source: "all" };
+            },
           },
           (injectionResults) => {
             if (chrome.runtime.lastError) {
-              loadingIndicator.style.display = "none";
+              classifyButton.disabled = false;
+              classifyButton.style.backgroundColor = ""; // Revert to default color
+              classifyButton.innerText = "Classify"; // Reset button text
               resultElement.innerText =
-                "Error extracting page content: " + chrome.runtime.lastError.message;
+                "Error extracting page content: " +
+                chrome.runtime.lastError.message;
               return;
             }
 
-            const pageContent = injectionResults[0].result;
+            const pageData = injectionResults[0].result;
+
+            // Display the source of the text
+            sourceElement.innerText = `Extracted Text Source: ${pageData.source}`;
+
+            // Display the extracted text
+            extractedTextElement.style.display = "block"; // Show the extracted text container
+            extractedTextElement.innerText = `${pageData.text}`;
 
             // Send the page content to the background script for classification
             chrome.runtime.sendMessage(
-              { action: "classifyPage", content: pageContent },
+              { action: "classifyPage", content: pageData.text },
               (response) => {
-                loadingIndicator.style.display = "none"; // Hide loading indicator
+                classifyButton.disabled = false;
+                classifyButton.style.backgroundColor = ""; // Revert to default color
+                classifyButton.innerText = "Classify"; // Reset button text
                 if (response && response.subject) {
-                  resultElement.innerText = `This page is classified as: ${response.subject}`;
+                  resultElement.innerHTML = `This page is classified as: <span>${response.subject}</span>`;
                 } else {
-                  resultElement.innerText = "Failed to classify the page.";
+                  resultElement.innerText = "Classification failed.";
                 }
               }
             );
