@@ -18,11 +18,6 @@
       button:hover {
         background-color: #3367d6;
       }
-      #loading {
-        margin-top: 10px;
-        color: #666;
-        font-style: italic;
-      }
       #source {
         margin-top: 10px;
         font-weight: bold;
@@ -31,7 +26,6 @@
       #extracted-text {
         margin-top: 10px;
         color: #555;
-        font-style: italic;
         max-height: 100px;
         overflow: auto;
         white-space: pre-wrap;
@@ -44,12 +38,14 @@
         font-weight: bold;
         color: #333;
       }
+      #result span {
+        color: #4688f1; /* Same blue as the button */
+      }
     </style>
   </head>
   <body>
     <h3>Classify Current Page</h3>
     <button id="classify">Classify</button>
-    <p id="loading" style="display: none;">Classifying...</p>
     <p id="source"></p>
     <div id="extracted-text"></div>
     <p id="result"></p>

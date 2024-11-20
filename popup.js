@@ -3,21 +3,26 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (classifyButton) {
     classifyButton.addEventListener("click", () => {
-      const loadingIndicator = document.getElementById("loading");
       const resultElement = document.getElementById("result");
       const extractedTextElement = document.getElementById("extracted-text");
       const sourceElement = document.getElementById("source");
+
+      // Update the button to indicate classification is in progress
+      classifyButton.disabled = true;
+      classifyButton.style.backgroundColor = "#cccccc"; // Change to gray
+      classifyButton.innerText = "Classifying...";
 
       resultElement.innerText = ""; // Clear previous result
       extractedTextElement.innerText = ""; // Clear previous text
       extractedTextElement.style.display = "none"; // Hide extracted text container
       sourceElement.innerText = ""; // Clear previous source
-      loadingIndicator.style.display = "block"; // Show loading indicator
 
       // Get the current active tab
       chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
         if (tabs.length === 0) {
-          loadingIndicator.style.display = "none";
+          classifyButton.disabled = false;
+          classifyButton.style.backgroundColor = ""; // Revert to default color
+          classifyButton.innerText = "Classify"; // Reset button text
           resultElement.innerText = "No active tab found!";
           return;
         }
@@ -41,7 +46,9 @@ document.addEventListener("DOMContentLoaded", () => {
           },
           (injectionResults) => {
             if (chrome.runtime.lastError) {
-              loadingIndicator.style.display = "none";
+              classifyButton.disabled = false;
+              classifyButton.style.backgroundColor = ""; // Revert to default color
+              classifyButton.innerText = "Classify"; // Reset button text
               resultElement.innerText =
                 "Error extracting page content: " +
                 chrome.runtime.lastError.message;
@@ -51,19 +58,21 @@ document.addEventListener("DOMContentLoaded", () => {
             const pageData = injectionResults[0].result;
 
             // Display the source of the text
-            sourceElement.innerText = `Source: ${pageData.source}`;
+            sourceElement.innerText = `Extracted Text Source: ${pageData.source}`;
 
             // Display the extracted text
             extractedTextElement.style.display = "block"; // Show the extracted text container
-            extractedTextElement.innerText = `Extracted Text:\n${pageData.text}`;
+            extractedTextElement.innerText = `${pageData.text}`;
 
             // Send the page content to the background script for classification
             chrome.runtime.sendMessage(
               { action: "classifyPage", content: pageData.text },
               (response) => {
-                loadingIndicator.style.display = "none"; // Hide loading indicator
+                classifyButton.disabled = false;
+                classifyButton.style.backgroundColor = ""; // Revert to default color
+                classifyButton.innerText = "Classify"; // Reset button text
                 if (response && response.subject) {
-                  resultElement.innerText = `This page is classified as: ${response.subject}`;
+                  resultElement.innerHTML = `This page is classified as: <span>${response.subject}</span>`;
                 } else {
                   resultElement.innerText = "Classification failed.";
                 }
