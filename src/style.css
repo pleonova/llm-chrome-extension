@@ -12,13 +12,26 @@ button {
 button:hover {
   background-color: #3367d6;
 }
-#loading {
+#source {
   margin-top: 10px;
-  color: #666;
-  font-style: italic;
+  font-weight: bold;
+  color: #555;
+}
+#extracted-text {
+  margin-top: 10px;
+  color: #555;
+  max-height: 100px;
+  overflow: auto;
+  white-space: pre-wrap;
+  border: 1px solid #ddd;
+  padding: 5px;
+  display: none; /* Hidden by default */
 }
 #result {
   margin-top: 10px;
   font-weight: bold;
   color: #333;
+}
+#result span {
+  color: #4688f1; /* Same blue as the button */
 }
