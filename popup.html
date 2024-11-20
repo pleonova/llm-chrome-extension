@@ -2,7 +2,7 @@
 <html>
   <head>
     <title>Webpage Classifier</title>
-    <script src="popup.js" defer></script> <!-- Ensure script is loaded after the DOM -->
+    <script src="popup.js" defer></script>
     <style>
       body {
         font-family: Arial, sans-serif;
@@ -28,12 +28,23 @@
         font-weight: bold;
         color: #333;
       }
+      #extracted-text {
+        margin-top: 10px;
+        color: #555;
+        font-style: italic;
+        max-height: 100px;
+        overflow: auto;
+        white-space: pre-wrap;
+        border: 1px solid #ddd;
+        padding: 5px;
+      }
     </style>
   </head>
   <body>
     <h3>Classify Current Page</h3>
     <button id="classify">Classify</button>
     <p id="loading" style="display: none;">Classifying...</p>
+    <div id="extracted-text"></div>
     <p id="result"></p>
   </body>
 </html>

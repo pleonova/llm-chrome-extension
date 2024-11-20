@@ -5,8 +5,10 @@ document.addEventListener("DOMContentLoaded", () => {
     classifyButton.addEventListener("click", () => {
       const loadingIndicator = document.getElementById("loading");
       const resultElement = document.getElementById("result");
+      const extractedTextElement = document.getElementById("extracted-text");
 
       resultElement.innerText = ""; // Clear previous result
+      extractedTextElement.innerText = ""; // Clear previous text
       loadingIndicator.style.display = "block"; // Show loading indicator
 
       // Get the current active tab
@@ -21,17 +23,21 @@ document.addEventListener("DOMContentLoaded", () => {
         chrome.scripting.executeScript(
           {
             target: { tabId: tabs[0].id },
-            func: () => document.body.innerText,
+            func: () => document.body.innerText.substring(0, 5000), // Limit to 5000 characters
           },
           (injectionResults) => {
             if (chrome.runtime.lastError) {
               loadingIndicator.style.display = "none";
               resultElement.innerText =
-                "Error extracting page content: " + chrome.runtime.lastError.message;
+                "Error extracting page content: " +
+                chrome.runtime.lastError.message;
               return;
             }
 
             const pageContent = injectionResults[0].result;
+
+            // Display the extracted text
+            extractedTextElement.innerText = `Extracted Text:\n${pageContent}`;
 
             // Send the page content to the background script for classification
             chrome.runtime.sendMessage(
@@ -41,7 +47,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (response && response.subject) {
                   resultElement.innerText = `This page is classified as: ${response.subject}`;
                 } else {
-                  resultElement.innerText = "Failed to classify the page.";
+                  resultElement.innerText = "Classification failed.";
                 }
               }
             );
