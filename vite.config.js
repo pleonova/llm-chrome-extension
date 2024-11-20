@@ -7,7 +7,6 @@ export default defineConfig({
                 index: './index.html',
                 background: './src/background.js',
                 content: './src/content.js',
-                popup: './src/popup.js',
             },
             output: {
                 entryFileNames: '[name].js',
