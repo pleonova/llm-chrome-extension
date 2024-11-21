@@ -3,7 +3,7 @@
     "name": "Webpage Subject Classifier",
     "version": "1.0",
     "description": "Classify web pages into Mathematics, Language Arts, Social Studies, or Science using an AI model.",
-    "permissions": ["scripting", "activeTab"],
+    "permissions": ["scripting", "activeTab", "storage"],
     "host_permissions": ["<all_urls>"],
     "background": {
       "service_worker": "background.js"

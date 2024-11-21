@@ -4,7 +4,7 @@
     <title>Webpage Classifier</title>
     <link rel="stylesheet" href="/src/style.css">
     <!-- module scripts are loaded async -->
-    <script type="module" src="src/popup.js" defer></script>
+    <script type="module" src="/src/popup.js" defer></script>
   </head>
   <body>
     <h3>Classify Current Page</h3>
@@ -13,5 +13,19 @@
     <div id="extracted-text"></div>
     <p id="result"></p>
 
+    <!-- Button to view past classifications -->
+    <button id="view-responses">View Past Classifications</button>
+
+    <!-- Table to display past classifications -->
+    <table id="responses-table" style="display: none;">
+      <thead>
+        <tr>
+          <th>Subject</th>
+          <th>URL</th>
+          <th>Timestamp</th>
+        </tr>
+      </thead>
+      <tbody id="responses-list"></tbody>
+    </table>
   </body>
 </html>
