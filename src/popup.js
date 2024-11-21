@@ -47,6 +47,9 @@ document.addEventListener("DOMContentLoaded", () => {
         cell.style.textAlign = "center";
         row.appendChild(cell);
         tableBody.appendChild(row);
+
+        // Update hexagon visualization with no data
+        createHexagonVisualization();
         return;
       }
 
@@ -98,6 +101,9 @@ document.addEventListener("DOMContentLoaded", () => {
       });
 
       responsesTable.style.display = "table"; // Show the table
+
+      // Update hexagon visualization
+      createHexagonVisualization();
     });
   };
 
@@ -208,3 +214,45 @@ document.addEventListener("DOMContentLoaded", () => {
     console.error("View Past Classifications button not found");
   }
 });
+
+// Function to create the hexagon visualization
+const createHexagonVisualization = () => {
+  chrome.storage.sync.get("responses", (data) => {
+    const responses = data.responses || [];
+
+    // Predefine all subjects with their default counts and colors
+    const allSubjects = {
+      Mathematics: { count: 0, color: "#FF6F61" }, // Red
+      Science: { count: 0, color: "#FFD700" }, // Yellow
+      "Social Studies": { count: 0, color: "#40E0D0" }, // Teal
+      "Language Arts": { count: 0, color: "#4682B4" }, // Blue
+    };
+
+    // Count the occurrences of each subject
+    responses.forEach((response) => {
+      if (allSubjects[response.subject]) {
+        allSubjects[response.subject].count += 1;
+      }
+    });
+
+    const hexagonContainer = document.getElementById("hexagon-visualization");
+    hexagonContainer.innerHTML = ""; // Clear previous visualization
+
+    // Create hexagons for all subjects
+    for (const [subject, { count, color }] of Object.entries(allSubjects)) {
+      const hexagon = document.createElement("div");
+      hexagon.className = "hexagon";
+      hexagon.style.backgroundColor = count > 0 ? color : "#ffffff"; // White if no history
+      hexagon.style.color = count > 0 ? "white" : "black"; // Black text for empty subjects
+      hexagon.innerHTML = `
+        <div class="hexagon-content">
+          <p>${subject}</p>
+          <p>[${count}]</p>
+        </div>
+      `;
+      hexagonContainer.appendChild(hexagon);
+    }
+  });
+};
+
+

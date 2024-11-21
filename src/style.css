@@ -80,3 +80,32 @@ button:hover {
 #responses-table button:hover {
   background-color: darkgray; /* Optional: Change color on hover */
 }
+
+#hexagon-visualization {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.hexagon {
+  width: 100px;
+  height: 58px;
+  background-color: #ddd;
+  margin: 0 5px;
+  position: relative;
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.hexagon-content {
+  font-size: 14px;
+  font-weight: bold;
+  text-align: center;
+  line-height: 1.2;
+}
+
+
