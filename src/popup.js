@@ -18,6 +18,20 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   };
 
+  // Function to remove a classification by index
+  const removeClassification = (index) => {
+    chrome.storage.sync.get("responses", (data) => {
+      const responses = data.responses || [];
+      if (index >= 0 && index < responses.length) {
+        responses.splice(index, 1); // Remove the item at the specified index
+        chrome.storage.sync.set({ responses }, () => {
+          console.log(`Removed classification at index ${index}`);
+          displayResponses(); // Refresh the table
+        });
+      }
+    });
+  };
+
   // Function to display past classifications
   const displayResponses = () => {
     chrome.storage.sync.get("responses", (data) => {
@@ -28,7 +42,7 @@ document.addEventListener("DOMContentLoaded", () => {
         console.log("No past classifications found");
         const row = document.createElement("tr");
         const cell = document.createElement("td");
-        cell.colSpan = 3;
+        cell.colSpan = 4; // Adjust for the additional "Remove" column
         cell.textContent = "No past classifications found.";
         cell.style.textAlign = "center";
         row.appendChild(cell);
@@ -38,7 +52,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       console.log("Displaying stored responses:", responses);
 
-      responses.forEach((response) => {
+      responses.forEach((response, index) => {
         const row = document.createElement("tr");
 
         // Subject Column
@@ -50,18 +64,35 @@ document.addEventListener("DOMContentLoaded", () => {
         const urlCell = document.createElement("td");
         const urlLink = document.createElement("a");
         urlLink.href = response.url;
-        urlLink.textContent = response.url.length > 50 ? response.url.substring(0, 47) + "..." : response.url; // Truncate if too long
+        urlLink.textContent = response.url.length > 50 ? response.url.substring(0, 47) + "..." : response.url; // Truncate long URLs
         urlLink.title = response.url; // Full URL on hover
-        urlLink.target = "_blank"; // Open in new tab
+        urlLink.target = "_blank"; // Open in a new tab
         urlCell.appendChild(urlLink);
         urlCell.style.wordWrap = "break-word";
-        urlCell.style.maxWidth = "200px"; // Limit width
+        urlCell.style.maxWidth = "200px";
         row.appendChild(urlCell);
 
         // Timestamp Column
         const timestampCell = document.createElement("td");
         timestampCell.textContent = new Date(response.timestamp).toLocaleString();
         row.appendChild(timestampCell);
+
+        // Remove Button Column
+        const removeCell = document.createElement("td");
+        const removeButton = document.createElement("button");
+        removeButton.textContent = "X";
+        removeButton.style.color = "white";
+        removeButton.style.backgroundColor = "black"; // Change background to black
+        removeButton.style.border = "none";
+        removeButton.style.cursor = "pointer";
+        removeButton.style.padding = "2px 5px"; // Smaller padding for a smaller button
+        removeButton.style.fontSize = "12px"; // Smaller font size
+        removeButton.style.borderRadius = "3px"; // Optional: Add a slight border radius
+        removeButton.addEventListener("click", () => {
+          removeClassification(index);
+        });
+        removeCell.appendChild(removeButton);
+        row.appendChild(removeCell);
 
         tableBody.appendChild(row);
       });
@@ -70,7 +101,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   };
 
-  // Function to handle the "Classify" button logic
+  // Function to handle classification logic
   const classifyPage = () => {
     const resultElement = document.getElementById("result");
     const extractedTextElement = document.getElementById("extracted-text");
@@ -147,16 +178,19 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   };
 
-  // Add event listener for the "Classify" button
+  // Add event listener for "Classify" button
   if (classifyButton) {
     classifyButton.addEventListener("click", classifyPage);
   } else {
     console.error("Classify button not found");
   }
 
-  // Add event listener for the "View Past Classifications" button
+  // Add event listener for "View Past Classifications" button
   if (viewResponsesButton) {
-    viewResponsesButton.addEventListener("click", displayResponses);
+    viewResponsesButton.addEventListener("click", () => {
+      console.log("View Past Classifications button clicked");
+      displayResponses();
+    });
   } else {
     console.error("View Past Classifications button not found");
   }
