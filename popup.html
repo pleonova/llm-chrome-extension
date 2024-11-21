@@ -41,6 +41,20 @@
       #result span {
         color: #4688f1; /* Same blue as the button */
       }
+      #responses-table {
+        margin-top: 20px;
+        display: none;
+        border-collapse: collapse;
+        width: 100%;
+      }
+      #responses-table th, #responses-table td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: left;
+      }
+      #responses-table th {
+        background-color: #f4f4f4;
+      }
     </style>
   </head>
   <body>
@@ -49,5 +63,16 @@
     <p id="source"></p>
     <div id="extracted-text"></div>
     <p id="result"></p>
+    <button id="view-responses">View Past Classifications</button>
+    <table id="responses-table">
+      <thead>
+        <tr>
+          <th>Subject</th>
+          <th>URL</th>
+          <th>Timestamp</th>
+        </tr>
+      </thead>
+      <tbody id="responses-list"></tbody>
+    </table>
   </body>
 </html>
