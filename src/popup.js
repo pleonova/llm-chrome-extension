@@ -126,11 +126,22 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      // Extract content from the current page
+      const url = new URL(tabs[0].url);
+
       chrome.scripting.executeScript(
         {
           target: { tabId: tabs[0].id },
-          func: () => {
+          func: (hostname) => {
+            // Extract tweet text if on Twitter
+            if (hostname === "twitter.com") {
+              const tweetTextElement = document.querySelector('[data-testid="tweetText"]');
+              if (tweetTextElement) {
+                return { text: tweetTextElement.innerText, source: "tweet" };
+              }
+              return { text: "Unable to extract tweet text.", source: "tweet" };
+            }
+
+            // General extraction for other sites
             const selectors = ["#mw-content-text", "main", "article"];
             for (let selector of selectors) {
               const element = document.querySelector(selector);
@@ -140,6 +151,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
             return { text: document.body.innerText.substring(0, 5000), source: "all" };
           },
+          args: [url.hostname],
         },
         (injectionResults) => {
           if (chrome.runtime.lastError) {
@@ -177,6 +189,7 @@ document.addEventListener("DOMContentLoaded", () => {
       );
     });
   };
+
 
   // Add event listener for "Classify" button
   if (classifyButton) {
