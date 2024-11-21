@@ -41,18 +41,24 @@ document.addEventListener("DOMContentLoaded", () => {
       responses.forEach((response) => {
         const row = document.createElement("tr");
 
+        // Subject Column
         const subjectCell = document.createElement("td");
         subjectCell.textContent = response.subject || "N/A";
         row.appendChild(subjectCell);
 
+        // URL Column with Wrapping and Truncation
         const urlCell = document.createElement("td");
         const urlLink = document.createElement("a");
         urlLink.href = response.url;
-        urlLink.textContent = response.url || "N/A";
-        urlLink.target = "_blank";
+        urlLink.textContent = response.url.length > 50 ? response.url.substring(0, 47) + "..." : response.url; // Truncate long URLs
+        urlLink.title = response.url; // Show full URL on hover
+        urlLink.target = "_blank"; // Open in a new tab
         urlCell.appendChild(urlLink);
+        urlCell.style.wordWrap = "break-word";
+        urlCell.style.maxWidth = "200px"; // Ensure cell doesn't exceed this width
         row.appendChild(urlCell);
 
+        // Timestamp Column
         const timestampCell = document.createElement("td");
         timestampCell.textContent = new Date(response.timestamp).toLocaleString();
         row.appendChild(timestampCell);
@@ -64,88 +70,12 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   };
 
-  // Function to handle classification logic
-  const classifyPage = () => {
-    const resultElement = document.getElementById("result");
-    const extractedTextElement = document.getElementById("extracted-text");
-    const sourceElement = document.getElementById("source");
-
-    if (!classifyButton) {
-      console.error("Classify button not found.");
-      return;
-    }
-
-    classifyButton.disabled = true;
-    classifyButton.style.backgroundColor = "#cccccc"; // Change to gray
-    classifyButton.innerText = "Classifying...";
-
-    resultElement.innerText = ""; // Clear previous result
-    extractedTextElement.innerText = ""; // Clear previous text
-    extractedTextElement.style.display = "none"; // Hide extracted text container
-    sourceElement.innerText = ""; // Clear previous source
-
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-      if (tabs.length === 0) {
-        console.error("No active tab found!");
-        classifyButton.disabled = false;
-        classifyButton.style.backgroundColor = ""; // Revert to default color
-        classifyButton.innerText = "Classify"; // Reset button text
-        resultElement.innerText = "No active tab found!";
-        return;
-      }
-
-      chrome.scripting.executeScript(
-        {
-          target: { tabId: tabs[0].id },
-          func: () => {
-            const selectors = ["#mw-content-text", "main", "article"];
-            for (let selector of selectors) {
-              const element = document.querySelector(selector);
-              if (element && element.innerText.trim()) {
-                return { text: element.innerText.substring(0, 5000), source: selector };
-              }
-            }
-            return { text: document.body.innerText.substring(0, 5000), source: "all" };
-          },
-        },
-        (injectionResults) => {
-          if (chrome.runtime.lastError) {
-            console.error("Error extracting page content:", chrome.runtime.lastError.message);
-            classifyButton.disabled = false;
-            classifyButton.style.backgroundColor = ""; // Revert to default color
-            classifyButton.innerText = "Classify"; // Reset button text
-            resultElement.innerText = `Error extracting page content: ${chrome.runtime.lastError.message}`;
-            return;
-          }
-
-          const pageData = injectionResults[0].result;
-          sourceElement.innerText = `Extracted Text Source: ${pageData.source}`;
-          extractedTextElement.style.display = "block"; // Show the extracted text container
-          extractedTextElement.innerText = `${pageData.text}`;
-
-          chrome.runtime.sendMessage(
-            { action: "classifyPage", content: pageData.text },
-            (response) => {
-              classifyButton.disabled = false;
-              classifyButton.style.backgroundColor = ""; // Revert to default color
-              classifyButton.innerText = "Classify"; // Reset button text
-
-              if (response && response.subject) {
-                resultElement.innerHTML = `This page is classified as: <span>${response.subject}</span>`;
-                storeClassification(response.subject, tabs[0].url); // Store the classification
-              } else {
-                resultElement.innerText = "Classification failed.";
-              }
-            }
-          );
-        }
-      );
-    });
-  };
-
   // Add event listener for "Classify" button
   if (classifyButton) {
-    classifyButton.addEventListener("click", classifyPage);
+    classifyButton.addEventListener("click", () => {
+      console.log("Classify button clicked");
+      // Implement classification logic here
+    });
   } else {
     console.error("Classify button not found");
   }

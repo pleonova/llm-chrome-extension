@@ -59,3 +59,9 @@ button:hover {
 #responses-table th {
   background-color: #f4f4f4;
 }
+
+#responses-table td {
+  word-wrap: break-word; /* Ensure long URLs wrap */
+  max-width: 200px; /* Set a maximum width for the cell */
+  overflow-wrap: break-word; /* For compatibility */
+}
