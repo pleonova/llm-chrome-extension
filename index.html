@@ -3,7 +3,6 @@
   <head>
     <title>Webpage Classifier</title>
     <link rel="stylesheet" href="/src/style.css">
-    <!-- module scripts are loaded async -->
     <script type="module" src="/src/popup.js" defer></script>
   </head>
   <body>
@@ -16,6 +15,34 @@
     <!-- Button to view past classifications -->
     <button id="view-responses">View Past Classifications</button>
 
+    <!-- Updated hexagon container -->
+    <div class="hexagon-container">
+        <div class="hexagon hex-math">
+            <div class="hexagon-content">
+                Mathematics
+                <div>[1]</div>
+            </div>
+        </div>
+        <div class="hexagon hex-science">
+            <div class="hexagon-content">
+                Science
+                <div>[2]</div>
+            </div>
+        </div>
+        <div class="hexagon hex-social">
+            <div class="hexagon-content">
+                Social Studies
+                <div>[1]</div>
+            </div>
+        </div>
+        <div class="hexagon hex-language">
+            <div class="hexagon-content">
+                Language Arts
+                <div>[2]</div>
+            </div>
+        </div>
+    </div>
+
     <!-- Table to display past classifications -->
     <table id="responses-table">
       <thead>
@@ -23,9 +50,10 @@
           <th>Subject</th>
           <th>URL</th>
           <th>Timestamp</th>
-          <th>Remove</th> <!-- Add header for Remove button -->
+          <th>Remove</th>
         </tr>
       </thead>
       <tbody id="responses-list"></tbody>
     </table>
-
+  </body>
+</html>

@@ -1,78 +1,41 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>Webpage Classifier</title>
-    <script src="popup.js" defer></script>
-    <style>
-      body {
-        font-family: Arial, sans-serif;
-        margin: 10px;
-      }
-      button {
-        padding: 10px 20px;
-        background-color: #4688f1;
-        color: white;
-        border: none;
-        cursor: pointer;
-      }
-      button:hover {
-        background-color: #3367d6;
-      }
-      #source {
-        margin-top: 10px;
-        font-weight: bold;
-        color: #555;
-      }
-      #extracted-text {
-        margin-top: 10px;
-        color: #555;
-        max-height: 100px;
-        overflow: auto;
-        white-space: pre-wrap;
-        border: 1px solid #ddd;
-        padding: 5px;
-        display: none; /* Hidden by default */
-      }
-      #result {
-        margin-top: 10px;
-        font-weight: bold;
-        color: #333;
-      }
-      #result span {
-        color: #4688f1; /* Same blue as the button */
-      }
-      #responses-table {
-        margin-top: 20px;
-        display: none;
-        border-collapse: collapse;
-        width: 100%;
-      }
-      #responses-table th, #responses-table td {
-        border: 1px solid #ddd;
-        padding: 8px;
-        text-align: left;
-      }
-      #responses-table th {
-        background-color: #f4f4f4;
-      }
-    </style>
-  </head>
-  <body>
-    <h3>Classify Current Page</h3>
-    <button id="classify">Classify</button>
-    <p id="source"></p>
-    <div id="extracted-text"></div>
-    <p id="result"></p>
-    <button id="view-responses">View Past Classifications</button>
-    <table id="responses-table">
-      <thead>
-        <tr>
-          <th>Subject</th>
-          <th>URL</th>
-          <th>Timestamp</th>
-        </tr>
-      </thead>
-      <tbody id="responses-list"></tbody>
-    </table>
-  </body>
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="hexagon-container">
+        <!-- Explicitly set width and height to make sure container is visible -->
+        <div class="hexagon hex-math">
+            <div class="hexagon-content">
+                Mathematics
+                <div>[1]</div>
+            </div>
+        </div>
+        <div class="hexagon hex-science">
+            <div class="hexagon-content">
+                Science
+                <div>[2]</div>
+            </div>
+        </div>
+        <div class="hexagon hex-social">
+            <div class="hexagon-content">
+                Social Studies
+                <div>[1]</div>
+            </div>
+        </div>
+        <div class="hexagon hex-language">
+            <div class="hexagon-content">
+                Language Arts
+                <div>[2]</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add this debug element to verify styles are loading -->
+    <div id="debug-text" style="color: red; margin-top: 10px;">
+        If you can see this text, HTML is loading correctly
+    </div>
+</body>
 </html>
