@@ -1,13 +1,17 @@
+/* Base styles */
 body {
+  width: 420px;
+  padding: 10px;
   font-family: Arial, sans-serif;
-  margin: 10px;
 }
 
 button {
-  padding: 10px 20px;
+  margin: 5px;
+  padding: 8px 16px;
   background-color: #4688f1;
   color: white;
   border: none;
+  border-radius: 4px;
   cursor: pointer;
 }
 
@@ -15,97 +19,98 @@ button:hover {
   background-color: #3367d6;
 }
 
-#source {
-  margin-top: 10px;
-  font-weight: bold;
-  color: #555;
-}
-
-#extracted-text {
-  margin-top: 10px;
-  color: #555;
-  max-height: 100px;
-  overflow: auto;
-  white-space: pre-wrap;
-  border: 1px solid #ddd;
-  padding: 5px;
-  display: none; /* Hidden by default */
-}
-
-#result {
-  margin-top: 10px;
-  font-weight: bold;
-  color: #333;
-}
-
 #result span {
   color: #4688f1; /* Same blue as the button */
 }
 
+/* Responses table styles */
 #responses-table {
   margin-top: 20px;
-  border-collapse: collapse;
   width: 100%;
-  display: none; /* Hidden by default */
+  border-collapse: collapse;
+  display: none;
 }
 
 #responses-table th,
 #responses-table td {
   border: 1px solid #ddd;
   padding: 8px;
+  text-align: left;
 }
 
 #responses-table th {
   background-color: #f4f4f4;
 }
 
-#responses-table td {
-  word-wrap: break-word; /* Ensure long URLs wrap */
-  max-width: 200px; /* Set a maximum width for the cell */
-  overflow-wrap: break-word; /* For compatibility */
-  text-align: center; /* Center horizontally */
-  vertical-align: middle; /* Center vertically */
-}
-
-#responses-table button {
-  color: white;
-  background-color: black; /* Black background */
-  border: none;
-  cursor: pointer;
-  padding: 2px 5px; /* Smaller padding for a smaller button */
-  font-size: 12px; /* Smaller font size */
-  border-radius: 3px; /* Optional: Slightly rounded corners */
-}
-
-#responses-table button:hover {
-  background-color: darkgray; /* Optional: Change color on hover */
-}
-
-#hexagon-visualization {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.hexagon {
-  width: 100px;
-  height: 58px;
-  background-color: #ddd;
-  margin: 0 5px;
+/* Hexagon Visualation */
+.hexagon-visualization {
   position: relative;
-  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  width: 400px;
+  height: 300px;
+  margin: 20px auto;
+}
+
+/* Base Hexagon */
+.hexagon {
+  width: 120px;
+  height: 120px;
+  background-color: #ddd;
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  text-align: center;
+  clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+  transition: transform 0.2s;
 }
 
 .hexagon-content {
-  font-size: 14px;
-  font-weight: bold;
   text-align: center;
+  color: white;
+  font-weight: bold;
+  padding: 10px;
+  font-size: 14px;
   line-height: 1.2;
 }
 
+/* Individual Hexagons */
+.hex-math {
+  background-color: #FF7F7F;
+  top: 25%;
+  left: 0%;
+  transform: translateX(-15%);
+}
 
+.hex-science {
+  background-color: #FFD700;
+  top: 0%;
+  left: 33%;
+}
+
+.hex-social {
+  background-color: #40E0D0;
+  top: 50%;
+  left: 33%;
+}
+
+.hex-language {
+  background-color: #4682B4;
+  top: 25%;
+  left: 66%;
+}
+
+
+
+/* Additional utility styles */
+#source, #result {
+  margin: 10px 0;
+  font-weight: bold;
+}
+
+#extracted-text {
+  margin: 10px 0;
+  max-height: 100px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  padding: 5px;
+  display: none;
+}
