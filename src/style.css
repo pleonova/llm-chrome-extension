@@ -81,20 +81,31 @@ button:hover {
   background-color: darkgray; /* Optional: Change color on hover */
 }
 
-/* Add these new styles */
-.hexagon-container {
-  position: relative;
-  width: 400px;
-  height: 300px;
-  margin: 0 auto;
-}
-
-/* If you need hover effects, add: */
-.hexagon:hover {
-  transform: scale(1.05);
-  z-index: 1;
+#hexagon-visualization {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
 .hexagon {
-  clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+  width: 100px;
+  height: 58px;
+  background-color: #ddd;
+  margin: 0 5px;
+  position: relative;
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
 }
+
+.hexagon-content {
+  font-size: 14px;
+  font-weight: bold;
+  text-align: center;
+  line-height: 1.2;
+}
+
+
