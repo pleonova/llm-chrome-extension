@@ -222,10 +222,10 @@ const createHexagonVisualization = () => {
 
     // Predefine all subjects with their default counts and colors
     const allSubjects = {
-      Mathematics: { count: 0, color: "#FF6F61" }, // Red
-      Science: { count: 0, color: "#FFD700" }, // Yellow
-      "Social Studies": { count: 0, color: "#40E0D0" }, // Teal
-      "Language Arts": { count: 0, color: "#4682B4" }, // Blue
+      Mathematics: { count: 0, color: "#F9584B" }, // Red
+      Science: { count: 0, color: "#E6B710" }, // Yellow
+      "Social Studies": { count: 0, color: "#32B7A9" }, // Teal
+      "Language Arts": { count: 0, color: "#4E62E0" }, // Blue
     };
 
     // Count the occurrences of each subject

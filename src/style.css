@@ -71,26 +71,26 @@ button:hover {
 
 /* Individual Hexagons */
 .hex-math {
-  background-color: #FF7F7F;
+  background-color: #F9584B;
   top: 25%;
   left: 0%;
   transform: translateX(-15%);
 }
 
 .hex-science {
-  background-color: #FFD700;
+  background-color: #E6B710;
   top: 0%;
   left: 33%;
 }
 
 .hex-social {
-  background-color: #40E0D0;
+  background-color: #32B7A9;
   top: 50%;
   left: 33%;
 }
 
 .hex-language {
-  background-color: #4682B4;
+  background-color: #4E62E0;
   top: 25%;
   left: 66%;
 }
