@@ -13,4 +13,19 @@
 5. Load the extension: Click “Load unpacked” and select the extension directory's `dist` folder.
 6. Confirm Loading: Extensions appear on the Extensions page.
 
+### No-Code Step-by-Step Setup
+
+![Instructions](screenshots/20241122/chrome_extension_step_by_step.png)
+
+### Screenshots
+
+How the chrome app looks and works in your browser:
+![On Start](screenshots/20241122/1_on_start.png)
+
+![Classification](screenshots/20241122/2_classified.png)
+
+![Summary Visualization](screenshots/20241122/3_summary_visual.png)
+
+![History](screenshots/20241122/4_history.png)
+
 
