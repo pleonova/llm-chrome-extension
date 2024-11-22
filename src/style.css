@@ -68,3 +68,45 @@ button:hover {
   text-align: center;
   line-height: 1.2;
 }
+
+/* Individual Hexagons */
+.hex-math {
+  background-color: #FF7F7F;
+  top: 25%;
+  left: 0%;
+  transform: translateX(-15%);
+}
+
+.hex-science {
+  background-color: #FFD700;
+  top: 0%;
+  left: 33%;
+}
+
+.hex-social {
+  background-color: #40E0D0;
+  top: 50%;
+  left: 33%;
+}
+
+.hex-language {
+  background-color: #4682B4;
+  top: 25%;
+  left: 66%;
+}
+
+
+/* Additional utility styles */
+#source, #result {
+  margin: 10px 0;
+  font-weight: bold;
+}
+
+#extracted-text {
+  margin: 10px 0;
+  max-height: 100px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  padding: 5px;
+  display: none;
+}
