@@ -1,4 +1,5 @@
 // Description: This script is executed when the popup is opened.
+// It is linked in the popup.html's script tag.
 // Like content.js, it can send/receive messages to/from background.js via chrome.runtime.sendMessage.
 // It adds an event listener to the classify button to extract the main content from the active tab
 // and sends it to the background script for classification.

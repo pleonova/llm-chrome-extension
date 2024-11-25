@@ -1,7 +1,17 @@
-// Runs on page load
-// Can send/revcieve messages to background.js
+// Content scripts can interact with the DOM of the webpage
+// Can send/revcieve messages to the extension's service worker (background.js)
 // Interacts with the DOM of the webpage
-// Purpose: Get information from the webpage and send it to background.js
+
+/** Content scripts can either be declared statically in manifest.json
+ *  which will run on every page 
+ * "content_scripts": ['content.js']
+ */
+
+/* or get programmatically injected in (background.js) using
+ chrome.scripting.executeScript({target: { tabId: tab.id }, files: [content.js] });
+*/ 
+
+
 import { YoutubeTranscript } from "youtube-transcript";
 
 window.console.log("Hello from the content script!", window.location.href);

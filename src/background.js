@@ -1,6 +1,8 @@
+// Engine of state for application
+// Listens for events and messages from the content script
+// Makes API requests when necessary and sends responses back to their origin
 import './sw-omnibox.js';
 import { injectColor } from './utils/injects.js';
-// Engine of state for application
 chrome.runtime.onInstalled.addListener(() => {
   chrome.action.setBadgeText({ text: "OFF" });
 });
@@ -26,6 +28,7 @@ chrome.runtime.onInstalled.addListener(() => {
 //   }
 // });
 
+// This listens for messages from the content script
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "classifyPage") {
     const apiUrl = "https://pleonova-subject-matter.hf.space/predict";
