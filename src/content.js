@@ -1,23 +1,24 @@
-chrome.action.onClicked.addListener(tab => {
-  chrome.scripting.executeScript({
-    target: { tabId: tab.id },
-    func: extractContent
-  }).catch(error => {
-    console.error("Error executing script:", error);
-    alert("Failed to extract content. Ensure the extension has the required permissions.");
-  });
+// Runs on page load
+// Can send/revcieve messages to background.js
+// Interacts with the DOM of the webpage
+// Purpose: Get information from the webpage and send it to background.js
+import { YoutubeTranscript } from "youtube-transcript";
 
-  function extractContent() {
-    const bodyText = document.body.innerText; // Extract text from the webpage
-    chrome.runtime.sendMessage({
-      action: "classifyPage",
-      content: bodyText
-    }, response => {
-      if (response && response.subject) {
-        alert(`This page is classified as: ${response.subject}`);
-      } else {
-        alert("Classification failed. Try again!");
-      }
-    });
-  }
-});
+window.console.log("Hello from the content script!", window.location.href);
+
+async function getTranscript(youTubeId) {
+    let parsedTranscript = '';
+
+    const transcript = await YoutubeTranscript.fetchTranscript(youTubeId)
+
+    if (!transcript) {
+        // should signal that we don't need to transcribe... assume we're on a text page
+        window.console.log("No transcript found");
+    }
+
+    for await (const text of transcript) {
+        parsedTranscript += text.text + " ";
+    }
+    window.console.log('transcript?', parsedTranscript);
+    return parsedTranscript;
+}

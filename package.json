@@ -6,10 +6,14 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "build:watch": "vite build --watch",
     "preview": "vite preview"
   },
   "devDependencies": {
     "@types/chrome": "^0.0.283",
     "vite": "^5.4.10"
+  },
+  "dependencies": {
+    "youtube-transcript": "^1.2.1"
   }
 }

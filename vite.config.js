@@ -9,8 +9,12 @@ export default defineConfig({
                 content: './src/content.js',
             },
             output: {
-                entryFileNames: '[name].js',
+                format: "esm",
+                entryFileNames: "[name].js",
             },
-        }
+        },
+        outDir: 'dist',
+        emptyOutDir: true,
+        sourcemap: true,
     },
 });

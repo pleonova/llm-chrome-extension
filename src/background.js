@@ -1,3 +1,31 @@
+import './sw-omnibox.js';
+import { injectColor } from './utils/injects.js';
+// Engine of state for application
+chrome.runtime.onInstalled.addListener(() => {
+  chrome.action.setBadgeText({ text: "OFF" });
+});
+
+// Note: The action.onClicked event won't be sent
+// if the extension action has specified a popup to show on click of the current tab.
+// This only runs when their is no popup to show in manifest.json.
+// "action": { "default_popup": "popup.html" } negates this onClicked event.
+// https://developer.chrome.com/docs/extensions/reference/api/action#popup
+// chrome.action.onClicked.addListener(async (tab) => {
+//   chrome.scripting.executeScript({
+//     target: { tabId: tab.id },
+//     func: injectColor,
+//   });
+
+//   if (tab.url.startsWith(youtube) || tab.url.startsWith(wikipedia)) {
+//     const prevState = await chrome.action.getBadgeText({ tabId: tab.id });
+//     const nextState = prevState === "ON" ? "OFF" : "ON";
+//     await chrome.action.setBadgeText({
+//       tabId: tab.id,
+//       text: nextState,
+//     });
+//   }
+// });
+
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "classifyPage") {
     const apiUrl = "https://pleonova-subject-matter.hf.space/predict";

@@ -9,11 +9,17 @@
       "service_worker": "background.js"
     },
     "action": {
+      "default_title": "Scan Page for Standards Alignment",
       "default_popup": "index.html",
       "default_icon": {
         "16": "icon.png",
+        "32": "icon.png",
         "48": "icon.png",
         "128": "icon.png"
       }
+    },
+    "minimum_chrome_version": "102",
+    "omnibox": {
+      "keyword": "@standards"
     }
   }
