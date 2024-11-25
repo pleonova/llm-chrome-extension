@@ -1,19 +1,19 @@
 # LLM Chrome Extension
 
-## What does this extension do?
+### What does this extension do?
 * Uses AI to categorize any webpage content.
 
-## Why use it?
+### Why use it?
 * Easily save webpages all in one place and get a high level overview into the types of websites you visit.
 * Customize it with your own AI model for tailored classifications.
 
-## How does it work?
+### How does it work?
 * Extracts webpage text using `chrome.scripting.executeScript`.
 * Sends the extracted text to an AI API, which processes the data and provides a subject label.
     * The [AI model](https://huggingface.co/spaces/pleonova/subject_matter/blob/main/app.py) is containerized with Docker and hosted on Hugging Face.
 * Stores classification results and webpage metadata using `chrome.storage.sync` for easy retrieval and visualization.
 
-## How does it look?
+### How does it look?
 
 #### Classify Button
 ![Summary Visualization](screenshots/20241122/2_classified.png)
