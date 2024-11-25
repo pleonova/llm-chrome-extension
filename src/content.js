@@ -1,12 +1,11 @@
 // Content scripts can interact with the DOM of the webpage
 // Can send/revceive messages to the extension's service worker (background.js)
-// Interacts with the DOM of the webpage
 
 /** Content scripts can either be declared statically in manifest.json
  *  which will run on every page 
  * "content_scripts": ['content.js']
 
-    or get programmatically injected in (background.js) using
+    or get programmatically injected by using
     chrome.scripting.executeScript({target: { tabId: tab.id }, files: [content.js] });
 */ 
 

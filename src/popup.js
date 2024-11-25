@@ -7,8 +7,7 @@
 // const port = chrome.runtime.connect();
 
 document.addEventListener("DOMContentLoaded", () => {
-  // This log and the above log are within the service worker context (background.js)
-  // console.log("Popup loaded: port", port);
+  // This log operates within the service worker context (background.js)
   const classifyButton = document.getElementById("classify");
 
   if (classifyButton) {
@@ -40,9 +39,11 @@ document.addEventListener("DOMContentLoaded", () => {
         // Page DOM is accessible in executeScript func call
         chrome.scripting.executeScript(
           /* chrome.scripting.executeScript can either inject a file, 
-            or run a function inlined in the func property */
+            or run a function inlined in the func property
+          */
           {
             target: { tabId: tabs[0].id },
+            // args: [], // Optional arguments to pass to the function's context
             func: () => {
               // This function runs in the context of the page and logs to the console of the page
               console.log('PAGE REFERENCE', window.location.href);
