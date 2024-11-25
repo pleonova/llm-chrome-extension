@@ -34,6 +34,6 @@
 5. Load the extension: Click “Load unpacked” and select the extension directory's `dist` folder.
 6. Confirm Loading: Extensions appear on the Extensions page.
 
-### No-Code Step-by-Step Setup
+#### No-Code Step-by-Step Setup
 
 ![Instructions](screenshots/20241122/chrome_extension_step_by_step.png)
