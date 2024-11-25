@@ -39,6 +39,8 @@ document.addEventListener("DOMContentLoaded", () => {
         // Extract main content from the active tab
         // Page DOM is accessible in executeScript func call
         chrome.scripting.executeScript(
+          /* chrome.scripting.executeScript can either inject a file, 
+            or run a function inlined in the func property */
           {
             target: { tabId: tabs[0].id },
             func: () => {
@@ -88,19 +90,19 @@ document.addEventListener("DOMContentLoaded", () => {
             extractedTextElement.innerText = `${pageData.text}`;
 
             // Send the page content to the background script for classification
-            // chrome.runtime.sendMessage(
-            //   { action: "classifyPage", content: pageData.text },
-            //   (response) => {
-            //     classifyButton.disabled = false;
-            //     classifyButton.style.backgroundColor = ""; // Revert to default color
-            //     classifyButton.innerText = "Classify"; // Reset button text
-            //     if (response && response.subject) {
-            //       resultElement.innerHTML = `This page is classified as: <span>${response.subject}</span>`;
-            //     } else {
-            //       resultElement.innerText = "Classification failed.";
-            //     }
-            //   }
-            // );
+            chrome.runtime.sendMessage(
+              { action: "classifyPage", content: pageData.text },
+              (response) => {
+                classifyButton.disabled = false;
+                classifyButton.style.backgroundColor = ""; // Revert to default color
+                classifyButton.innerText = "Classify"; // Reset button text
+                if (response && response.subject) {
+                  resultElement.innerHTML = `This page is classified as: <span>${response.subject}</span>`;
+                } else {
+                  resultElement.innerText = "Classification failed.";
+                }
+              }
+            );
           }
         );
       });

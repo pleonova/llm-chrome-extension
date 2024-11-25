@@ -1,5 +1,5 @@
 // Engine of state for application
-// Listens for events and messages from the content script
+// Listens for events and messages from the content script or main popup script
 // Makes API requests when necessary and sends responses back to their origin
 import './sw-omnibox.js';
 import { injectColor } from './utils/injects.js';
