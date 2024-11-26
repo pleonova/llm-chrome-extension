@@ -12,56 +12,14 @@ chrome.runtime.onInstalled.addListener(() => {
 // This only runs when their is no popup to show in manifest.json.
 // "action": { "default_popup": "popup.html" } negates this onClicked event.
 // https://developer.chrome.com/docs/extensions/reference/api/action#popup
-// chrome.action.onClicked.addListener(async (tab) => {
-//   chrome.scripting.executeScript({
-//     target: { tabId: tab.id },
-//     func: injectColor,
-//   });
-
-//   if (tab.url.startsWith(youtube) || tab.url.startsWith(wikipedia)) {
-//     const prevState = await chrome.action.getBadgeText({ tabId: tab.id });
-//     const nextState = prevState === "ON" ? "OFF" : "ON";
-//     await chrome.action.setBadgeText({
-//       tabId: tab.id,
-//       text: nextState,
-//     });
-//   }
-// });
+chrome.action.onClicked.addListener(async (tab) => {});
 
 // This listens for messages from the content script
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.action === "classifyPage") {
-    const apiUrl = "https://pleonova-subject-matter.hf.space/predict";
+  console.log(sender.tab ? "message from content script:" + sender.tab.url : "message from extension");
 
-    fetch(apiUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        data: [message.content] // Send the extracted page content to the API
-      }),
-    })
-      .then((response) => {
-        if (!response.ok) {
-          console.error(`API responded with status ${response.status}`);
-          return response.text(); // Attempt to read raw text response
-        }
-        return response.json(); // Parse JSON if response is OK
-      })
-      .then((data) => {
-        if (data && typeof data === "string") {
-          console.error("Unexpected response format:", data);
-          sendResponse({ subject: "Error - Unexpected response from API" });
-        } else if (data && data.label) {
-          sendResponse({ subject: data.label }); // Pass the classification back
-        } else {
-          sendResponse({ subject: "Unknown" });
-        }
-      })
-      .catch((error) => {
-        console.error("Error calling API:", error);
-        sendResponse({ subject: "Error - API call failed" });
-      });
-
-    return true; // Keep the message channel open for async responses
+  if (message.greeting === "hello from content.js" || message.greeting === "hello from popup.js") {
+    sendResponse({ response: "hello back from background.js" });
   }
+  console.log('message', message);
 });
