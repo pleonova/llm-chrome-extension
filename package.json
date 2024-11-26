@@ -11,9 +11,8 @@
   },
   "devDependencies": {
     "@types/chrome": "^0.0.283",
-    "vite": "^5.4.10"
-  },
-  "dependencies": {
+    "@types/dom-chromium-ai": "^0.0.4",
+    "vite": "^5.4.10",
     "youtube-transcript": "^1.2.1"
   }
 }

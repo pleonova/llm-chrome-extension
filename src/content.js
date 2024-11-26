@@ -19,7 +19,11 @@ console.log("Hello from the content script!", window.location.href);
 
 // another way is to just call a function when this script is injected
 async function getPageInfo() {
-    const response = await chrome.runtime.sendMessage({greeting: "content.js sends page info", url: window.location.href});
+    const response = await chrome.runtime.sendMessage(
+        {
+            greeting: "content.js sends page info",
+            url: window.location.href
+        });
     console.log(response);
 }
 
