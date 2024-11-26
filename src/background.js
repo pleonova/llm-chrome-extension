@@ -15,11 +15,26 @@ chrome.runtime.onInstalled.addListener(() => {
 chrome.action.onClicked.addListener(async (tab) => {});
 
 // This listens for messages from the content script
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
   console.log(sender.tab ? "message from content script:" + sender.tab.url : "message from extension");
 
   if (message.greeting === "hello from content.js" || message.greeting === "hello from popup.js") {
     sendResponse({ response: "hello back from background.js" });
   }
+  // we can also run a script back to the page
+  if (message.greeting === 'hello from initMessage popup.js') {
+    console.log('pM message', message);
+    console.log('pM sender', sender);
+
+    if (!message.activeTabId) {
+      console.log('No active tab found', message);
+      return;
+    }
+    await chrome.scripting.executeScript({
+      target: { tabId: message.activeTabId },
+      func: injectColor,
+    });
+  }
   console.log('message', message);
+  // we can run a script on the message too. 
 });

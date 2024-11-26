@@ -20,12 +20,25 @@ document.addEventListener("DOMContentLoaded", () => {
   (async () => {
     const response = await chrome.runtime.sendMessage({greeting: "hello from iife popup.js"});
     console.log(response);
-    return 'done';
   })();
 });
 
 async function initMessage() {
-  const response = await chrome.runtime.sendMessage({greeting: "hello from initMessage popup.js"});
-  console.log(response);
-  return 'finished';;
+  let activeTab = await getActiveTab();
+
+  if (!activeTab || !activeTab.id) {
+    console.log('No active tab found');
+    await chrome.runtime.sendMessage({greeting: "hello from initMessage popup.js"});
+  }
+
+  await chrome.runtime.sendMessage(
+    {
+      greeting: 'hello from initMessage popup.js',
+      activeTabId: activeTab?.id,
+    });
+}
+
+async function getActiveTab() {
+  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  return tab;
 }
