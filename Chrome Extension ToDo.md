@@ -9,6 +9,16 @@
 * [chrome://flags/#writer-api-for-gemini-nano](chrome://flags/#writer-api-for-gemini-nano)
 * [chrome://flags/#rewriter-api-for-gemini-nano](chrome://flags/#rewriter-api-for-gemini-nano)
 
+## Setup (*subject to change as the prompt API is a trial feature*)
+* Complete the steps outlined in the README.md file in the Getting Started section (you should have completed uploading the extension files)
+* Make sure you have the latest version of Chrome installed.
+* Register for the `Gemini API Access` trial here https://developer.chrome.com/origintrials/#/register_trial/
+  * Enter `chrome-extension://<extension-id>` in the Web Origin field
+  * To find the extension-id, open chrome://extensions/ in Chrome and click on `Details` on the extension you just uploaded. Look at the URL field , it will look like this: `chrome-extension://id=?<extension-id>/`, you can also find the ID in the table.
+  * In the Expected Usage section, select `0-10,000`
+  * In the Disclosure and Acknowledgements section, check all the checkboxes and click `Register`
+* After you register, you will be get a token to use in the `manifest.json` file.
+
 
 ## Todos
 [ ] - Launch instructions on first install. 
