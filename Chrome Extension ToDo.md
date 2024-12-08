@@ -9,15 +9,24 @@
 * [chrome://flags/#writer-api-for-gemini-nano](chrome://flags/#writer-api-for-gemini-nano)
 * [chrome://flags/#rewriter-api-for-gemini-nano](chrome://flags/#rewriter-api-for-gemini-nano)
 
-## Setup (*subject to change as the prompt API is a trial feature*)
+## Setup Gemini LLM(*subject to change as the prompt API is a trial feature*)
 * Complete the steps outlined in the README.md file in the Getting Started section (you should have completed uploading the extension files)
 * Make sure you have the latest version of Chrome installed (minimum version 131)
 * Register for the `Gemini API Access` trial here https://developer.chrome.com/origintrials/#/register_trial/
-  * Enter `chrome-extension://<extension-id>` in the Web Origin field
-  * To find the extension-id, open chrome://extensions/ in Chrome and click on `Details` on the extension you just uploaded. Look at the URL field , it will look like this: `chrome-extension://id=?<extension-id>/`, you can also find the ID in the table.
-  * In the Expected Usage section, select `0-10,000`
-  * In the Disclosure and Acknowledgements section, check all the checkboxes and click `Register`
-* After you register, you will be get a token to use in the `manifest.json` file.
+  * Enter `chrome-extension://[YOUR-EXTENSION-ID]` in the Web Origin field
+  * To find the extension-id:
+    1. Open `chrome://extensions/` in Chrome
+    2. Click `Details` on your uploaded extension
+    3. Copy the ID from either:
+       - The URL: `chrome-extension://[YOUR-EXTENSION-ID]/`
+       - The extensions table
+  * Select `0-10,000` in Expected Usage
+  * Check all boxes in Disclosure and Acknowledgements section
+  * Click `Register`
+* Copy the received trial token and create a `.env` file in the root directory of the project. Paste it into your `.env` file on a new line starting with `AI_LANGUAGE_MODEL_TRIAL_TOKEN=`. For example:
+  ```
+  AI_LANGUAGE_MODEL_TRIAL_TOKEN=YourTokenHere...
+  ```
 
 ## References
 * https://github.com/GoogleChrome/chrome-extensions-samples/tree/main/functional-samples/ai.gemini-on-device 
