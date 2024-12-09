@@ -139,7 +139,7 @@ document.addEventListener("DOMContentLoaded", () => {
           target: { tabId: tabs[0].id },
           func: (hostname) => {
             // Extract tweet text if on Twitter
-            if (hostname === "twitter.com") {
+            if (hostname === "twitter.com" || "x.com") {
               const tweetTextElement = document.querySelector('[data-testid="tweetText"]');
               if (tweetTextElement) {
                 return { text: tweetTextElement.innerText, source: "tweet" };
