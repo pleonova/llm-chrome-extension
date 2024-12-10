@@ -9,7 +9,9 @@
 * [chrome://flags/#writer-api-for-gemini-nano](chrome://flags/#writer-api-for-gemini-nano)
 * [chrome://flags/#rewriter-api-for-gemini-nano](chrome://flags/#rewriter-api-for-gemini-nano)
 
-## Setup Gemini LLM(*subject to change as the prompt API is a trial feature*)
+## Setup Gemini LLM 
+(*subject to change as the prompt API is a trial feature*)
+
 * Complete the steps outlined in the README.md file in the Getting Started section (you should have completed uploading the extension files)
 * Make sure you have the latest version of Chrome installed (minimum version 131)
 * Register for the `Gemini API Access` trial here https://developer.chrome.com/origintrials/#/register_trial/
@@ -23,14 +25,16 @@
   * Select `0-10,000` in Expected Usage
   * Check all boxes in Disclosure and Acknowledgements section
   * Click `Register`
-* Copy the received trial token and create a `.env` file in the root directory of the project. Paste it into your `.env` file on a new line starting with `AI_LANGUAGE_MODEL_TRIAL_TOKEN=`. For example:
-  ```
-  AI_LANGUAGE_MODEL_TRIAL_TOKEN=YourTokenHere...
-  ```
+* Copy the received trial token and create a `.env` file in the root directory of the project. Paste it into your `.env` file on a new line starting with `AI_LANGUAGE_MODEL_TRIAL_TOKEN=<token>`. 
 
-## References
+
+
+
+## Resources
 * https://github.com/GoogleChrome/chrome-extensions-samples/tree/main/functional-samples/ai.gemini-on-device 
 * https://github.com/explainers-by-googlers/prompt-api
+* https://tomayac.github.io/prompt-api-playground/
+* https://github.com/rustyzone/ai-ext-built-ins
 
 ## Todos
 [ ] - Launch instructions on first install. 
