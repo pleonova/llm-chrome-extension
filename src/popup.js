@@ -243,6 +243,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         classifyLocalButton.disabled = true;
         classifyLocalButton.style.backgroundColor = "#cccccc";
         classifyLocalButton.innerText = "No local model available";
+        classifyLocalButton.style.cursor = "not-allowed";
       } else {
         classifyLocalButton.addEventListener("click", () => classifyPageContent(true, classifyLocalButton));
       }
