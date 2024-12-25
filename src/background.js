@@ -9,8 +9,21 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       classifyWithAPI(message.content, sendResponse);
     }
     return true; // Required for async responses in Chrome extensions
+  } else if (message.action === "checkModelAvailability") {
+    checkModelAvailability().then(sendResponse);
+    return true; // Required for async response
   }
 });
+
+async function checkModelAvailability() {
+  try {
+    const model = await ai.languageModel.create();
+    return model != null;
+  } catch (error) {
+    console.error("Model availability check failed:", error);
+    return false;
+  }
+}
 
 async function classifyWithLocalModel(content, sendResponse) {
   try {

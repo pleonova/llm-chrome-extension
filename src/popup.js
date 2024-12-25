@@ -1,6 +1,6 @@
 console.log("popup.js loaded successfully");
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   const classifyButton = document.getElementById("classify");
   const viewResponsesButton = document.getElementById("view-responses");
   const tableBody = document.getElementById("responses-list");
@@ -237,7 +237,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const classifyLocalButton = document.getElementById("classifyLocalButton");
   if (classifyLocalButton) {
-    classifyLocalButton.addEventListener("click", () => classifyPageContent(true, classifyLocalButton));
+    // Check model availability before enabling button
+    chrome.runtime.sendMessage({ action: "checkModelAvailability" }, (isAvailable) => {
+      if (!isAvailable) {
+        classifyLocalButton.disabled = true;
+        classifyLocalButton.style.backgroundColor = "#cccccc";
+        classifyLocalButton.innerText = "No local model available";
+      } else {
+        classifyLocalButton.addEventListener("click", () => classifyPageContent(true, classifyLocalButton));
+      }
+    });
   } else {
     console.error("Local classification button not found");
   }
