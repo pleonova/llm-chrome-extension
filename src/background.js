@@ -18,9 +18,14 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 async function checkModelAvailability() {
   try {
     const model = await ai.languageModel.create();
+    console.log("Model availability check result:", model != null);
     return model != null;
   } catch (error) {
     console.error("Model availability check failed:", error);
+    console.log("Error details:", {
+      message: error.message,
+      stack: error.stack
+    });
     return false;
   }
 }
