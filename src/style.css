@@ -15,9 +15,6 @@ button {
   cursor: pointer;
 }
 
-button:hover {
-  background-color: #3367d6;
-}
 
 #result span {
   color: #4688f1; /* Same blue as the button */
@@ -109,4 +106,19 @@ button:hover {
   border: 1px solid #ddd;
   padding: 5px;
   display: none;
+}
+
+/* Add these styles for the new local model button */
+#classifyLocalButton {
+  background-color: #2196F3;
+  color: white;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin: 5px;
+}
+
+#classifyLocalButton:hover {
+  background-color: #1976D2;
 }

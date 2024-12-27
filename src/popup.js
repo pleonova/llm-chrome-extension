@@ -1,6 +1,6 @@
 console.log("popup.js loaded successfully");
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   const classifyButton = document.getElementById("classify");
   const viewResponsesButton = document.getElementById("view-responses");
   const tableBody = document.getElementById("responses-list");
@@ -107,15 +107,16 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   };
 
-  // Function to handle classification logic
-  const classifyPage = () => {
+  // Shared classification function
+  const classifyPageContent = (useLocalModel = false, button) => {
     const resultElement = document.getElementById("result");
     const extractedTextElement = document.getElementById("extracted-text");
     const sourceElement = document.getElementById("source");
 
-    classifyButton.disabled = true;
-    classifyButton.style.backgroundColor = "#cccccc"; // Indicate loading
-    classifyButton.innerText = "Classifying...";
+    // Update button state
+    button.disabled = true;
+    button.style.backgroundColor = "#cccccc";
+    button.innerText = "Classifying...";
 
     resultElement.innerText = ""; // Clear previous result
     extractedTextElement.innerText = ""; // Clear previous text
@@ -125,81 +126,101 @@ document.addEventListener("DOMContentLoaded", () => {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       if (tabs.length === 0) {
         console.error("No active tab found");
-        classifyButton.disabled = false;
-        classifyButton.style.backgroundColor = ""; // Reset button color
-        classifyButton.innerText = "Classify"; // Reset button text
+        button.disabled = false;
+        button.style.backgroundColor = "";
+        button.innerText = useLocalModel ? "Classify using Local Model" : "Classify";
         resultElement.innerText = "No active tab found!";
         return;
       }
 
       const url = new URL(tabs[0].url);
 
-      chrome.scripting.executeScript(
-        {
-          target: { tabId: tabs[0].id },
-          func: (hostname) => {
-            // Extract tweet text if on Twitter
-            if (hostname === "twitter.com") {
-              const tweetTextElement = document.querySelector('[data-testid="tweetText"]');
-              if (tweetTextElement) {
-                return { text: tweetTextElement.innerText, source: "tweet" };
-              }
-              return { text: "Unable to extract tweet text.", source: "tweet" };
+      const scriptOptions = {
+        target: { tabId: tabs[0].id },
+        func: (hostname) => {
+          // Extract tweet text if on Twitter
+          if (hostname === "twitter.com" || hostname === "x.com") {
+            const tweetTextElement = document.querySelector('[data-testid="tweetText"]');
+            if (tweetTextElement) {
+              return { text: tweetTextElement.innerText, source: "tweet" };
             }
-
-            // General extraction for other sites
-            const selectors = ["#mw-content-text", "main", "article"];
-            for (let selector of selectors) {
-              const element = document.querySelector(selector);
-              if (element && element.innerText.trim()) {
-                return { text: element.innerText.substring(0, 5000), source: selector };
-              }
-            }
-            return { text: document.body.innerText.substring(0, 5000), source: "all" };
-          },
-          args: [url.hostname],
-        },
-        (injectionResults) => {
-          if (chrome.runtime.lastError) {
-            console.error("Error extracting page content:", chrome.runtime.lastError.message);
-            classifyButton.disabled = false;
-            classifyButton.style.backgroundColor = ""; // Reset button
-            classifyButton.innerText = "Classify"; // Reset button text
-            resultElement.innerText = `Error: ${chrome.runtime.lastError.message}`;
-            return;
+            return { text: "Unable to extract tweet text.", source: "tweet" };
           }
 
-          const pageData = injectionResults[0].result;
-
-          sourceElement.innerText = `Extracted Text Source: ${pageData.source}`;
-          extractedTextElement.style.display = "block"; // Show extracted text
-          extractedTextElement.innerText = pageData.text;
-
-          // Send data to background script for classification
-          chrome.runtime.sendMessage(
-            { action: "classifyPage", content: pageData.text },
-            (response) => {
-              classifyButton.disabled = false;
-              classifyButton.style.backgroundColor = ""; // Reset button
-              classifyButton.innerText = "Classify"; // Reset button text
-
-              if (response && response.subject) {
-                resultElement.innerHTML = `This page is classified as: <span>${response.subject}</span>`;
-                storeClassification(response.subject, tabs[0].url); // Store the classification
-              } else {
-                resultElement.innerText = "Classification failed.";
-              }
+          // General extraction for other sites
+          const selectors = ["#mw-content-text", "main", "article"];
+          for (let selector of selectors) {
+            const element = document.querySelector(selector);
+            if (element && element.innerText.trim()) {
+              return { text: element.innerText.substring(0, 5000), source: selector };
             }
-          );
+          }
+          return { text: document.body.innerText.substring(0, 5000), source: "all" };
+        },
+        args: [url.hostname]
+      };
+
+      chrome.scripting.executeScript(scriptOptions, (injectionResults) => {
+        if (chrome.runtime.lastError) {
+          console.error("Error:", chrome.runtime.lastError);
+          button.disabled = false;
+          button.style.backgroundColor = "";
+          button.innerText = useLocalModel ? "Classify using Local Model" : "Classify";
+          resultElement.innerText = `Error: ${chrome.runtime.lastError.message}`;
+          return;
         }
-      );
+
+        const pageData = injectionResults[0].result;
+
+        sourceElement.innerText = `Extracted Text Source: ${pageData.source}`;
+        extractedTextElement.style.display = "block";
+        extractedTextElement.innerText = pageData.text;
+
+        // Send to background script
+        chrome.runtime.sendMessage(
+          { 
+            action: "classifyPage", 
+            content: pageData.text,
+            useLocalModel 
+          },
+          (response) => {
+            button.disabled = false;
+            button.style.backgroundColor = "";
+            button.innerText = useLocalModel ? "Classify using Local Model" : "Classify";
+
+            if (response && response.subject) {
+              resultElement.innerHTML = `This page is classified as: <span>${response.subject}</span>`;
+              storeClassification(response.subject, tabs[0].url); // Store the classification
+
+              // Remove existing explanation element if present
+              const existingExplanation = document.getElementById('explanation');
+              if (existingExplanation) {
+                existingExplanation.remove();
+              }
+
+              // Add explanation element only if explanation data is present
+              if (response.explanation) {
+                const explanationElement = document.createElement('div');
+                explanationElement.id = 'explanation';
+                explanationElement.innerHTML = `<strong>Explanation:</strong> <em>${response.explanation}</em>`;
+                explanationElement.style.marginBottom = '20px'; // Add spacing
+
+                // Insert explanation before the "View Past Classifications" button
+                const viewResponsesButton = document.getElementById("view-responses");
+                viewResponsesButton.parentNode.insertBefore(explanationElement, viewResponsesButton);
+              }
+            } else {
+              resultElement.innerText = "Classification failed.";
+            }
+          }
+        );
+      });
     });
   };
 
-
-  // Add event listener for "Classify" button
+  // Update event listeners
   if (classifyButton) {
-    classifyButton.addEventListener("click", classifyPage);
+    classifyButton.addEventListener("click", () => classifyPageContent(false, classifyButton));
   } else {
     console.error("Classify button not found");
   }
@@ -212,6 +233,23 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   } else {
     console.error("View Past Classifications button not found");
+  }
+
+  const classifyLocalButton = document.getElementById("classifyLocalButton");
+  if (classifyLocalButton) {
+    // Check model availability before enabling button
+    chrome.runtime.sendMessage({ action: "checkModelAvailability" }, (isAvailable) => {
+      if (!isAvailable) {
+        classifyLocalButton.disabled = true;
+        classifyLocalButton.style.backgroundColor = "#cccccc";
+        classifyLocalButton.innerText = "No local model available";
+        classifyLocalButton.style.cursor = "not-allowed";
+      } else {
+        classifyLocalButton.addEventListener("click", () => classifyPageContent(true, classifyLocalButton));
+      }
+    });
+  } else {
+    console.error("Local classification button not found");
   }
 });
 
@@ -254,5 +292,3 @@ const createHexagonVisualization = () => {
     }
   });
 };
-
-
