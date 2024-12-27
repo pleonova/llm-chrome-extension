@@ -1,5 +1,29 @@
 console.log("popup.js loaded successfully");
 
+const GOOGLE_SHEETS_API = {
+  SCOPES: ['https://www.googleapis.com/auth/spreadsheets'],
+  SHEET_NAME: 'Classification History',
+  HEADERS: ['Subject', 'URL', 'Timestamp']
+};
+
+// Add this function near the top with other utility functions
+const getAuthToken = async () => {
+  try {
+    return new Promise((resolve, reject) => {
+      chrome.identity.getAuthToken({ interactive: true }, (token) => {
+        if (chrome.runtime.lastError) {
+          reject(chrome.runtime.lastError);
+        } else {
+          resolve(token);
+        }
+      });
+    });
+  } catch (error) {
+    console.error('Auth error:', error);
+    throw error;
+  }
+};
+
 document.addEventListener("DOMContentLoaded", async () => {
   const classifyButton = document.getElementById("classify");
   const viewResponsesButton = document.getElementById("view-responses");
@@ -7,15 +31,28 @@ document.addEventListener("DOMContentLoaded", async () => {
   const responsesTable = document.getElementById("responses-table");
 
   // Function to store classifications
-  const storeClassification = (subject, url) => {
+  const storeClassification = async (subject, url) => {
     const timestamp = new Date().toISOString();
+    
+    // Store in chrome storage
     chrome.storage.sync.get("responses", (data) => {
       const responses = data.responses || [];
       responses.push({ subject, url, timestamp });
       chrome.storage.sync.set({ responses }, () => {
-        console.log("Classification stored successfully:", { subject, url, timestamp });
+        console.log("Classification stored in Chrome storage:", { subject, url, timestamp });
       });
     });
+
+    // Also store in Google Sheets if connected
+    try {
+      const { spreadsheetId } = await chrome.storage.sync.get('spreadsheetId');
+      if (spreadsheetId) {
+        await appendToGoogleSheet(subject, url, timestamp);
+        console.log("Classification stored in Google Sheets");
+      }
+    } catch (error) {
+      console.error("Failed to store in Google Sheets:", error);
+    }
   };
 
   // Function to remove a classification by index
@@ -251,6 +288,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   } else {
     console.error("Local classification button not found");
   }
+
+  addSpreadsheetManagement();
 });
 
 // Function to create the hexagon visualization
@@ -289,6 +328,149 @@ const createHexagonVisualization = () => {
         </div>
       `;
       hexagonContainer.appendChild(hexagon);
+    }
+  });
+};
+
+// Add new function to create or get spreadsheet ID
+const getOrCreateSpreadsheet = async () => {
+  const token = await getAuthToken();
+  
+  // First check if we have a stored spreadsheet ID
+  const stored = await chrome.storage.sync.get('spreadsheetId');
+  if (stored.spreadsheetId) {
+    try {
+      // Verify the spreadsheet is still accessible
+      const response = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${stored.spreadsheetId}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) return stored.spreadsheetId;
+    } catch (error) {
+      console.log('Stored spreadsheet no longer accessible, creating new one');
+    }
+  }
+
+  // Create new spreadsheet
+  const response = await fetch('https://sheets.googleapis.com/v4/spreadsheets', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      properties: {
+        title: 'Web Page Classifications'
+      },
+      sheets: [{
+        properties: {
+          title: GOOGLE_SHEETS_API.SHEET_NAME
+        }
+      }]
+    })
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to create spreadsheet');
+  }
+
+  const { spreadsheetId } = await response.json();
+  
+  // Initialize the sheet with headers
+  await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${GOOGLE_SHEETS_API.SHEET_NAME}!A1:C1?valueInputOption=RAW`, {
+    method: 'PUT',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      values: [GOOGLE_SHEETS_API.HEADERS]
+    })
+  });
+
+  // Store the spreadsheet ID
+  await chrome.storage.sync.set({ spreadsheetId });
+  
+  return spreadsheetId;
+};
+
+// Modify the appendToGoogleSheet function
+const appendToGoogleSheet = async (subject, url, timestamp) => {
+  const token = await getAuthToken();
+  if (!token) {
+    throw new Error('Not authenticated');
+  }
+
+  const spreadsheetId = await getOrCreateSpreadsheet();
+  const range = `${GOOGLE_SHEETS_API.SHEET_NAME}!A:C`;
+
+  const response = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${range}:append`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      values: [[subject, url, timestamp]],
+      majorDimension: 'ROWS',
+      valueInputOption: 'USER_ENTERED'
+    })
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to append to Google Sheet');
+  }
+  
+  return response.json();
+};
+
+// Add UI elements to manage spreadsheet connection
+const addSpreadsheetManagement = () => {
+  const settingsDiv = document.createElement('div');
+  settingsDiv.id = 'sheet-settings';
+  settingsDiv.style.marginTop = '20px';
+  settingsDiv.style.borderTop = '1px solid #ccc';
+  settingsDiv.style.paddingTop = '10px';
+
+  chrome.storage.sync.get('spreadsheetId', async (data) => {
+    if (data.spreadsheetId) {
+      const token = await getAuthToken();
+      const response = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${data.spreadsheetId}?fields=properties.title`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const sheet = await response.json();
+      
+      settingsDiv.innerHTML = `
+        <p>Connected to Sheet: ${sheet.properties.title}</p>
+        <button id="disconnect-sheet">Disconnect Sheet</button>
+        <button id="open-sheet">Open Sheet</button>
+      `;
+    } else {
+      settingsDiv.innerHTML = `
+        <p>No Google Sheet connected</p>
+        <button id="connect-sheet">Connect to Google Sheets</button>
+      `;
+    }
+  });
+
+  document.body.appendChild(settingsDiv);
+
+  // Add event listeners
+  document.addEventListener('click', async (e) => {
+    if (e.target.id === 'connect-sheet') {
+      try {
+        const spreadsheetId = await getOrCreateSpreadsheet();
+        location.reload(); // Refresh the popup to show new state
+      } catch (error) {
+        console.error('Failed to connect sheet:', error);
+      }
+    } else if (e.target.id === 'disconnect-sheet') {
+      await chrome.storage.sync.remove('spreadsheetId');
+      location.reload();
+    } else if (e.target.id === 'open-sheet') {
+      const { spreadsheetId } = await chrome.storage.sync.get('spreadsheetId');
+      if (spreadsheetId) {
+        window.open(`https://docs.google.com/spreadsheets/d/${spreadsheetId}`);
+      }
     }
   });
 };

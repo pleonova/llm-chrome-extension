@@ -13,8 +13,12 @@ button {
   border: none;
   border-radius: 4px;
   cursor: pointer;
+  transition: background-color 0.2s ease;
 }
 
+button:hover {
+  background-color: #3367d6;
+}
 
 #result span {
   color: #4688f1; /* Same blue as the button */
@@ -39,6 +43,10 @@ button {
   background-color: #f4f4f4;
 }
 
+#responses-table button:hover {
+  background-color: #000000;
+  opacity: 0.8;
+}
 
 #hexagon-visualization {
   display: flex;
@@ -92,7 +100,6 @@ button {
   left: 66%;
 }
 
-
 /* Additional utility styles */
 #source, #result {
   margin: 10px 0;
@@ -117,8 +124,71 @@ button {
   border-radius: 4px;
   cursor: pointer;
   margin: 5px;
+  transition: background-color 0.2s ease;
 }
 
 #classifyLocalButton:hover {
   background-color: #1976D2;
+}
+
+.sheet-status, .sheet-connect {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+}
+
+.button-group {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.action-button {
+    background: #1a73e8;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 500;
+    transition: background-color 0.2s ease;
+}
+
+.action-button:hover {
+    background: #1557b0;
+}
+
+.secondary-button {
+    background: #fff;
+    color: #1a73e8;
+    border: 1px solid #1a73e8;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.secondary-button:hover {
+    background: #f1f3f4;
+    color: #1557b0;
+    border-color: #1557b0;
+}
+
+.help-text {
+    color: #5f6368;
+    margin-top: 8px;
+}
+
+#connect-sheet img {
+    margin-right: 8px;
+}
+
+#sheet-settings {
+    margin-top: 20px;
+    border-top: 1px solid #ccc;
+    padding-top: 10px;
 }
