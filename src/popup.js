@@ -400,26 +400,31 @@ const appendToGoogleSheet = async (subject, url, timestamp) => {
     throw new Error('Not authenticated');
   }
 
-  const spreadsheetId = await getOrCreateSpreadsheet();
-  const range = `${GOOGLE_SHEETS_API.SHEET_NAME}!A:C`;
+  const { spreadsheetId } = await chrome.storage.sync.get('spreadsheetId');
+  if (!spreadsheetId) {
+    throw new Error('No spreadsheet connected');
+  }
 
-  const response = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${range}:append`, {
+  const range = `${GOOGLE_SHEETS_API.SHEET_NAME}!A:C`;
+  const endpoint = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${range}:append?valueInputOption=USER_ENTERED`;
+
+  const response = await fetch(endpoint, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json'
     },
     body: JSON.stringify({
-      values: [[subject, url, timestamp]],
-      majorDimension: 'ROWS',
-      valueInputOption: 'USER_ENTERED'
+      values: [[subject, url, new Date(timestamp).toLocaleString()]]
     })
   });
 
   if (!response.ok) {
+    const errorData = await response.json();
+    console.error('Sheet API Error:', errorData);
     throw new Error('Failed to append to Google Sheet');
   }
-  
+
   return response.json();
 };
 
