@@ -6,6 +6,12 @@ const GOOGLE_SHEETS_API = {
   HEADERS: ['Subject', 'URL', 'Timestamp']
 };
 
+// Add this constant at the top with other constants
+const STORAGE_KEYS = {
+  SPREADSHEET_ID: 'spreadsheetId',
+  PREVIOUS_SPREADSHEET_ID: 'previousSpreadsheetId'
+};
+
 // Add this function near the top with other utility functions
 const getAuthToken = async () => {
   try {
@@ -282,6 +288,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         classifyLocalButton.innerText = "No local model available";
         classifyLocalButton.style.cursor = "not-allowed";
       } else {
+        // Remove any existing background color to match default button styling
+        classifyLocalButton.style.backgroundColor = "";
         classifyLocalButton.addEventListener("click", () => classifyPageContent(true, classifyLocalButton));
       }
     });
@@ -452,7 +460,7 @@ const addSpreadsheetManagement = () => {
     } else {
       settingsDiv.innerHTML = `
         <p>No Google Sheet connected</p>
-        <button id="connect-sheet">Connect to Google Sheets</button>
+        <button id="connect-sheet">Connect to Google Sheets (beta)</button>
       `;
     }
   });
@@ -463,16 +471,47 @@ const addSpreadsheetManagement = () => {
   document.addEventListener('click', async (e) => {
     if (e.target.id === 'connect-sheet') {
       try {
+        // Try to get previous spreadsheet ID first
+        const { previousSpreadsheetId } = await chrome.storage.sync.get(STORAGE_KEYS.PREVIOUS_SPREADSHEET_ID);
+        if (previousSpreadsheetId) {
+          try {
+            // Verify if previous sheet is still accessible
+            const token = await getAuthToken();
+            const response = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${previousSpreadsheetId}`, {
+              headers: { 'Authorization': `Bearer ${token}` }
+            });
+            
+            if (response.ok) {
+              // Previous sheet is accessible, reuse it
+              await chrome.storage.sync.set({ 
+                [STORAGE_KEYS.SPREADSHEET_ID]: previousSpreadsheetId 
+              });
+              location.reload();
+              return;
+            }
+          } catch (error) {
+            console.log('Previous spreadsheet no longer accessible');
+          }
+        }
+        
+        // If no previous sheet or not accessible, create new one
         const spreadsheetId = await getOrCreateSpreadsheet();
         location.reload(); // Refresh the popup to show new state
       } catch (error) {
         console.error('Failed to connect sheet:', error);
       }
     } else if (e.target.id === 'disconnect-sheet') {
-      await chrome.storage.sync.remove('spreadsheetId');
+      // Store current spreadsheet ID before disconnecting
+      const { spreadsheetId } = await chrome.storage.sync.get(STORAGE_KEYS.SPREADSHEET_ID);
+      if (spreadsheetId) {
+        await chrome.storage.sync.set({ 
+          [STORAGE_KEYS.PREVIOUS_SPREADSHEET_ID]: spreadsheetId 
+        });
+      }
+      await chrome.storage.sync.remove(STORAGE_KEYS.SPREADSHEET_ID);
       location.reload();
     } else if (e.target.id === 'open-sheet') {
-      const { spreadsheetId } = await chrome.storage.sync.get('spreadsheetId');
+      const { spreadsheetId } = await chrome.storage.sync.get(STORAGE_KEYS.SPREADSHEET_ID);
       if (spreadsheetId) {
         window.open(`https://docs.google.com/spreadsheets/d/${spreadsheetId}`);
       }
