@@ -271,8 +271,22 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Add event listener for "View Past Classifications" button
   if (viewResponsesButton) {
     viewResponsesButton.addEventListener("click", () => {
-      console.log("View Past Classifications button clicked");
-      displayResponses();
+      console.log("View/Hide Past Classifications button clicked");
+      const hexagonViz = document.getElementById("hexagon-visualization");
+      const responsesTable = document.getElementById("responses-table");
+      
+      if (viewResponsesButton.textContent === "View Past Classifications") {
+        // Show the elements and change button text
+        displayResponses();
+        hexagonViz.style.display = "flex";
+        responsesTable.style.display = "table";
+        viewResponsesButton.textContent = "Hide Past Classifications";
+      } else {
+        // Hide the elements and change button text back
+        hexagonViz.style.display = "none";
+        responsesTable.style.display = "none";
+        viewResponsesButton.textContent = "View Past Classifications";
+      }
     });
   } else {
     console.error("View Past Classifications button not found");
