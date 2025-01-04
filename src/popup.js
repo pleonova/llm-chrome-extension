@@ -268,28 +268,34 @@ document.addEventListener("DOMContentLoaded", async () => {
     console.error("Classify button not found");
   }
 
-  // Add event listener for "View Past Classifications" button
-  if (viewResponsesButton) {
-    viewResponsesButton.addEventListener("click", () => {
-      console.log("View/Hide Past Classifications button clicked");
+  // Update the event listener for the expander
+  const expander = document.getElementById("view-responses");
+  if (expander) {
+    expander.addEventListener("click", () => {
+      const caret = expander.querySelector(".caret");
+      const expanderText = expander.querySelector(".expander-text");
       const hexagonViz = document.getElementById("hexagon-visualization");
       const responsesTable = document.getElementById("responses-table");
       
-      if (viewResponsesButton.textContent === "View Past Classifications") {
-        // Show the elements and change button text
+      const isExpanded = caret.classList.contains("expanded");
+      
+      if (!isExpanded) {
+        // Expand
         displayResponses();
         hexagonViz.style.display = "flex";
         responsesTable.style.display = "table";
-        viewResponsesButton.textContent = "Hide Past Classifications";
+        caret.classList.add("expanded");
+        expanderText.textContent = "Hide Past Classifications";
       } else {
-        // Hide the elements and change button text back
+        // Collapse
         hexagonViz.style.display = "none";
         responsesTable.style.display = "none";
-        viewResponsesButton.textContent = "View Past Classifications";
+        caret.classList.remove("expanded");
+        expanderText.textContent = "View Past Classifications";
       }
     });
   } else {
-    console.error("View Past Classifications button not found");
+    console.error("Expander not found");
   }
 
   const classifyLocalButton = document.getElementById("classifyLocalButton");
