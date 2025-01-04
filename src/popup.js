@@ -460,7 +460,7 @@ const addSpreadsheetManagement = () => {
     } else {
       settingsDiv.innerHTML = `
         <p>No Google Sheet connected</p>
-        <button id="connect-sheet">Connect to Google Sheets (beta)</button>
+        <button id="connect-sheet" style="background-color: #008000; &:hover { background-color: #006400; }">Connect to Google Sheets (beta)</button>
       `;
     }
   });
