@@ -3,7 +3,7 @@ console.log("popup.js loaded successfully");
 const GOOGLE_SHEETS_API = {
   SCOPES: ['https://www.googleapis.com/auth/spreadsheets'],
   SHEET_NAME: 'Classification History',
-  HEADERS: ['Subject', 'URL', 'Timestamp']
+  HEADERS: ['Subject', 'URL', 'Count', 'Initial Timestamp', 'Latest Timestamp']
 };
 
 // Add this constant at the top with other constants
@@ -31,7 +31,7 @@ const getAuthToken = async () => {
 };
 
 // Add these constants at the top with other constants
-const ITEMS_PER_PAGE = 10;
+const ITEMS_PER_PAGE = 5;
 let currentPage = 1;
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -46,14 +46,47 @@ document.addEventListener("DOMContentLoaded", async () => {
     
     // Store in chrome storage
     chrome.storage.sync.get("responses", (data) => {
-      const responses = data.responses || [];
-      responses.push({ subject, url, timestamp });
+      let responses = data.responses || [];
+      
+      // Find any existing entry with the same URL
+      const existingIndex = responses.findIndex(r => r.url === url);
+      
+      if (existingIndex !== -1) {
+        // If subject is the same, update count and timestamp
+        if (responses[existingIndex].subject === subject) {
+          responses[existingIndex] = {
+            ...responses[existingIndex],
+            count: (responses[existingIndex].count || 1) + 1,
+            lastTimestamp: timestamp
+          };
+        } else {
+          // If subject is different, add as new entry
+          responses.push({
+            subject,
+            url,
+            count: 1,
+            firstTimestamp: timestamp,
+            lastTimestamp: timestamp
+          });
+        }
+      } else {
+        // Add new entry if URL doesn't exist
+        responses.push({
+          subject,
+          url,
+          count: 1,
+          firstTimestamp: timestamp,
+          lastTimestamp: timestamp
+        });
+      }
+      
       chrome.storage.sync.set({ responses }, () => {
-        console.log("Classification stored in Chrome storage:", { subject, url, timestamp });
+        console.log("Classification stored");
+        displayResponses(); // Refresh the display
       });
     });
 
-    // Also store in Google Sheets if connected
+    // Store in Google Sheets if connected
     try {
       const { spreadsheetId } = await chrome.storage.sync.get('spreadsheetId');
       if (spreadsheetId) {
@@ -66,16 +99,14 @@ document.addEventListener("DOMContentLoaded", async () => {
   };
 
   // Function to remove a classification by index
-  const removeClassification = (index) => {
+  const removeClassification = (url, subject) => {
     chrome.storage.sync.get("responses", (data) => {
       const responses = data.responses || [];
-      if (index >= 0 && index < responses.length) {
-        responses.splice(index, 1); // Remove the item at the specified index
-        chrome.storage.sync.set({ responses }, () => {
-          console.log(`Removed classification at index ${index}`);
-          displayResponses(); // Refresh the table
-        });
-      }
+      const updatedResponses = responses.filter(r => !(r.url === url && r.subject === subject));
+      chrome.storage.sync.set({ responses: updatedResponses }, () => {
+        console.log("Classification removed");
+        displayResponses();
+      });
     });
   };
 
@@ -91,44 +122,60 @@ document.addEventListener("DOMContentLoaded", async () => {
         console.log("No past classifications found");
         const row = document.createElement("tr");
         const cell = document.createElement("td");
-        cell.colSpan = 4; // Adjust for the additional "Remove" column
+        cell.colSpan = 6; // Adjusted for all columns
         cell.textContent = "No past classifications found.";
         cell.style.textAlign = "center";
         row.appendChild(cell);
         tableBody.appendChild(row);
         
-        // Hide pagination controls
         document.querySelector('.pagination-controls').style.display = 'none';
-        
-        // Update hexagon visualization
         createHexagonVisualization();
         return;
       }
 
-      // Sort responses by timestamp in descending order (most recent first)
-      const sortedResponses = [...responses].sort((a, b) => 
-        new Date(b.timestamp) - new Date(a.timestamp)
+      // Consolidate duplicate entries
+      const consolidatedResponses = responses.reduce((acc, curr) => {
+        const key = `${curr.url}-${curr.subject}`;
+        if (!acc[key]) {
+          acc[key] = {
+            ...curr,
+            count: 1,
+            firstTimestamp: curr.firstTimestamp || curr.timestamp,
+            lastTimestamp: curr.lastTimestamp || curr.timestamp
+          };
+        } else {
+          acc[key].count += 1;
+          // Update timestamps
+          const currTimestamp = curr.timestamp || curr.lastTimestamp;
+          if (currTimestamp < acc[key].firstTimestamp) {
+            acc[key].firstTimestamp = currTimestamp;
+          }
+          if (currTimestamp > acc[key].lastTimestamp) {
+            acc[key].lastTimestamp = currTimestamp;
+          }
+        }
+        return acc;
+      }, {});
+
+      // Convert back to array and sort
+      const sortedResponses = Object.values(consolidatedResponses).sort((a, b) => 
+        new Date(b.lastTimestamp) - new Date(a.lastTimestamp)
       );
 
       // Calculate pagination values
       const totalPages = Math.ceil(sortedResponses.length / ITEMS_PER_PAGE);
       const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
       const endIndex = Math.min(startIndex + ITEMS_PER_PAGE, sortedResponses.length);
-
-      // Update pagination controls
-      const prevButton = document.getElementById('prev-page');
-      const nextButton = document.getElementById('next-page');
-      const pageInfo = document.getElementById('page-info');
-
-      prevButton.disabled = currentPage === 1;
-      nextButton.disabled = currentPage === totalPages;
-      pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
-      document.querySelector('.pagination-controls').style.display = 'flex';
-
-      // Display only the items for the current page
       const pageResponses = sortedResponses.slice(startIndex, endIndex);
 
-      pageResponses.forEach((response, index) => {
+      // Update pagination controls
+      document.querySelector('.pagination-controls').style.display = 'block';
+      document.getElementById('prev-page').disabled = currentPage === 1;
+      document.getElementById('next-page').disabled = currentPage === totalPages;
+      document.getElementById('page-info').textContent = `Page ${currentPage} of ${totalPages || 1}`;
+
+      // Display consolidated entries
+      pageResponses.forEach((response) => {
         const row = document.createElement("tr");
 
         // Subject Column
@@ -141,17 +188,27 @@ document.addEventListener("DOMContentLoaded", async () => {
         const urlLink = document.createElement("a");
         urlLink.href = response.url;
         urlLink.textContent = response.url.length > 50 ? response.url.substring(0, 47) + "..." : response.url;
-        urlLink.title = response.url; // Full URL on hover
-        urlLink.target = "_blank"; // Open in a new tab
+        urlLink.title = response.url;
+        urlLink.target = "_blank";
         urlCell.appendChild(urlLink);
         urlCell.style.wordWrap = "break-word";
         urlCell.style.maxWidth = "200px";
         row.appendChild(urlCell);
 
-        // Timestamp Column
-        const timestampCell = document.createElement("td");
-        timestampCell.textContent = new Date(response.timestamp).toLocaleString();
-        row.appendChild(timestampCell);
+        // Count Column
+        const countCell = document.createElement("td");
+        countCell.textContent = response.count;
+        row.appendChild(countCell);
+
+        // Initial Timestamp Column
+        const initialTimestampCell = document.createElement("td");
+        initialTimestampCell.textContent = new Date(response.firstTimestamp).toLocaleString();
+        row.appendChild(initialTimestampCell);
+
+        // Latest Timestamp Column
+        const latestTimestampCell = document.createElement("td");
+        latestTimestampCell.textContent = new Date(response.lastTimestamp).toLocaleString();
+        row.appendChild(latestTimestampCell);
 
         // Remove Button Column
         const removeCell = document.createElement("td");
@@ -165,7 +222,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         removeButton.style.fontSize = "12px";
         removeButton.style.borderRadius = "3px";
         removeButton.addEventListener("click", () => {
-          removeClassification(sortedResponses.length - 1 - (startIndex + index));
+          removeClassification(response.url, response.subject);
         });
         removeCell.appendChild(removeButton);
         row.appendChild(removeCell);
@@ -173,7 +230,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         tableBody.appendChild(row);
       });
 
-      responsesTable.style.display = "table";
+      // Update hexagon visualization
       createHexagonVisualization();
     });
   };
@@ -599,11 +656,13 @@ const addSpreadsheetManagement = () => {
 
 // Function to convert data to CSV format
 const convertToCSV = (data) => {
-  const headers = ['Subject', 'URL', 'Timestamp'];
+  const headers = ['Subject', 'URL', 'Count', 'Initial Timestamp', 'Latest Timestamp'];
   const rows = data.map(item => [
     item.subject,
     item.url,
-    new Date(item.timestamp).toLocaleString()
+    item.count || 1,
+    new Date(item.firstTimestamp || item.timestamp).toLocaleString(),
+    new Date(item.lastTimestamp || item.timestamp).toLocaleString()
   ]);
   
   return [headers, ...rows]
