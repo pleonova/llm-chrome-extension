@@ -105,10 +105,15 @@ document.addEventListener("DOMContentLoaded", async () => {
         return;
       }
 
+      // Sort responses by timestamp in descending order (most recent first)
+      const sortedResponses = [...responses].sort((a, b) => 
+        new Date(b.timestamp) - new Date(a.timestamp)
+      );
+
       // Calculate pagination values
-      const totalPages = Math.ceil(responses.length / ITEMS_PER_PAGE);
+      const totalPages = Math.ceil(sortedResponses.length / ITEMS_PER_PAGE);
       const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-      const endIndex = Math.min(startIndex + ITEMS_PER_PAGE, responses.length);
+      const endIndex = Math.min(startIndex + ITEMS_PER_PAGE, sortedResponses.length);
 
       // Update pagination controls
       const prevButton = document.getElementById('prev-page');
@@ -121,12 +126,9 @@ document.addEventListener("DOMContentLoaded", async () => {
       document.querySelector('.pagination-controls').style.display = 'flex';
 
       // Display only the items for the current page
-      const pageResponses = responses.slice(startIndex, endIndex);
-      
-      // Create a copy of the page responses array and reverse it
-      const reversedResponses = [...pageResponses].reverse();
+      const pageResponses = sortedResponses.slice(startIndex, endIndex);
 
-      reversedResponses.forEach((response, index) => {
+      pageResponses.forEach((response, index) => {
         const row = document.createElement("tr");
 
         // Subject Column
@@ -163,7 +165,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         removeButton.style.fontSize = "12px";
         removeButton.style.borderRadius = "3px";
         removeButton.addEventListener("click", () => {
-          removeClassification(responses.length - 1 - (startIndex + index));
+          removeClassification(sortedResponses.length - 1 - (startIndex + index));
         });
         removeCell.appendChild(removeButton);
         row.appendChild(removeCell);
