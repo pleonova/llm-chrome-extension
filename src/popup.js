@@ -280,6 +280,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       const expanderText = expander.querySelector(".expander-text");
       const hexagonViz = document.getElementById("hexagon-visualization");
       const responsesTable = document.getElementById("responses-table");
+      const downloadButton = document.getElementById("download-csv");
       
       const isExpanded = caret.classList.contains("expanded");
       
@@ -319,6 +320,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   } else {
     console.error("Local classification button not found");
+  }
+
+  const downloadButton = document.getElementById("download-csv");
+  if (downloadButton) {
+    downloadButton.addEventListener("click", downloadCSV);
+  } else {
+    console.error("Download CSV button not found");
   }
 
   addSpreadsheetManagement();
@@ -540,5 +548,45 @@ const addSpreadsheetManagement = () => {
         window.open(`https://docs.google.com/spreadsheets/d/${spreadsheetId}`);
       }
     }
+  });
+};
+
+// Function to convert data to CSV format
+const convertToCSV = (data) => {
+  const headers = ['Subject', 'URL', 'Timestamp'];
+  const rows = data.map(item => [
+    item.subject,
+    item.url,
+    new Date(item.timestamp).toLocaleString()
+  ]);
+  
+  return [headers, ...rows]
+    .map(row => row.map(cell => `"${cell}"`).join(','))
+    .join('\n');
+};
+
+// Function to trigger CSV download
+const downloadCSV = () => {
+  chrome.storage.sync.get("responses", (data) => {
+    const responses = data.responses || [];
+    if (responses.length === 0) {
+      alert("No classification history to download.");
+      return;
+    }
+
+    const csv = convertToCSV(responses);
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    const timestamp = new Date().toISOString().split('T')[0];
+    
+    link.setAttribute('href', url);
+    link.setAttribute('download', `classification-history-${timestamp}.csv`);
+    link.style.display = 'none';
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   });
 };
