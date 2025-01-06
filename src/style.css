@@ -208,3 +208,30 @@ button:hover {
   font-weight: 500;
   color: #333;
 }
+
+.pagination-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.pagination-controls button {
+  padding: 5px 10px;
+  background-color: #4688f1;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.pagination-controls button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+#page-info {
+  font-size: 14px;
+  color: #666;
+}

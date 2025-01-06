@@ -30,6 +30,10 @@ const getAuthToken = async () => {
   }
 };
 
+// Add these constants at the top with other constants
+const ITEMS_PER_PAGE = 10;
+let currentPage = 1;
+
 document.addEventListener("DOMContentLoaded", async () => {
   const classifyButton = document.getElementById("classify");
   const viewResponsesButton = document.getElementById("view-responses");
@@ -79,6 +83,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   const displayResponses = () => {
     chrome.storage.sync.get("responses", (data) => {
       const responses = data.responses || [];
+      const tableBody = document.getElementById("responses-list");
+      const responsesTable = document.getElementById("responses-table");
       tableBody.innerHTML = ""; // Clear previous entries
 
       if (responses.length === 0) {
@@ -90,16 +96,35 @@ document.addEventListener("DOMContentLoaded", async () => {
         cell.style.textAlign = "center";
         row.appendChild(cell);
         tableBody.appendChild(row);
-
-        // Update hexagon visualization with no data
+        
+        // Hide pagination controls
+        document.querySelector('.pagination-controls').style.display = 'none';
+        
+        // Update hexagon visualization
         createHexagonVisualization();
         return;
       }
 
-      console.log("Displaying stored responses:", responses);
+      // Calculate pagination values
+      const totalPages = Math.ceil(responses.length / ITEMS_PER_PAGE);
+      const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+      const endIndex = Math.min(startIndex + ITEMS_PER_PAGE, responses.length);
 
-      // Create a copy of the responses array and reverse it
-      const reversedResponses = [...responses].reverse();
+      // Update pagination controls
+      const prevButton = document.getElementById('prev-page');
+      const nextButton = document.getElementById('next-page');
+      const pageInfo = document.getElementById('page-info');
+
+      prevButton.disabled = currentPage === 1;
+      nextButton.disabled = currentPage === totalPages;
+      pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+      document.querySelector('.pagination-controls').style.display = 'flex';
+
+      // Display only the items for the current page
+      const pageResponses = responses.slice(startIndex, endIndex);
+      
+      // Create a copy of the page responses array and reverse it
+      const reversedResponses = [...pageResponses].reverse();
 
       reversedResponses.forEach((response, index) => {
         const row = document.createElement("tr");
@@ -134,12 +159,11 @@ document.addEventListener("DOMContentLoaded", async () => {
         removeButton.style.backgroundColor = "black"; // Change background to black
         removeButton.style.border = "none";
         removeButton.style.cursor = "pointer";
-        removeButton.style.padding = "2px 5px"; // Smaller padding for a smaller button
-        removeButton.style.fontSize = "12px"; // Smaller font size
-        removeButton.style.borderRadius = "3px"; // Optional: Add a slight border radius
+        removeButton.style.padding = "2px 5px";
+        removeButton.style.fontSize = "12px";
+        removeButton.style.borderRadius = "3px";
         removeButton.addEventListener("click", () => {
-          // We need to use the original index when removing
-          removeClassification(responses.length - 1 - index);
+          removeClassification(responses.length - 1 - (startIndex + index));
         });
         removeCell.appendChild(removeButton);
         row.appendChild(removeCell);
@@ -147,12 +171,32 @@ document.addEventListener("DOMContentLoaded", async () => {
         tableBody.appendChild(row);
       });
 
-      responsesTable.style.display = "table"; // Show the table
-
-      // Update hexagon visualization
+      responsesTable.style.display = "table";
       createHexagonVisualization();
     });
   };
+
+  // Add event listeners for pagination buttons
+  const prevButton = document.getElementById('prev-page');
+  const nextButton = document.getElementById('next-page');
+
+  prevButton.addEventListener('click', () => {
+    if (currentPage > 1) {
+      currentPage--;
+      displayResponses();
+    }
+  });
+
+  nextButton.addEventListener('click', () => {
+    chrome.storage.sync.get("responses", (data) => {
+      const responses = data.responses || [];
+      const totalPages = Math.ceil(responses.length / ITEMS_PER_PAGE);
+      if (currentPage < totalPages) {
+        currentPage++;
+        displayResponses();
+      }
+    });
+  });
 
   // Shared classification function
   const classifyPageContent = (useLocalModel = false, button) => {
