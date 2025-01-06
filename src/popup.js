@@ -98,7 +98,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       console.log("Displaying stored responses:", responses);
 
-      responses.forEach((response, index) => {
+      // Create a copy of the responses array and reverse it
+      const reversedResponses = [...responses].reverse();
+
+      reversedResponses.forEach((response, index) => {
         const row = document.createElement("tr");
 
         // Subject Column
@@ -110,7 +113,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         const urlCell = document.createElement("td");
         const urlLink = document.createElement("a");
         urlLink.href = response.url;
-        urlLink.textContent = response.url.length > 50 ? response.url.substring(0, 47) + "..." : response.url; // Truncate long URLs
+        urlLink.textContent = response.url.length > 50 ? response.url.substring(0, 47) + "..." : response.url;
         urlLink.title = response.url; // Full URL on hover
         urlLink.target = "_blank"; // Open in a new tab
         urlCell.appendChild(urlLink);
@@ -135,7 +138,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         removeButton.style.fontSize = "12px"; // Smaller font size
         removeButton.style.borderRadius = "3px"; // Optional: Add a slight border radius
         removeButton.addEventListener("click", () => {
-          removeClassification(index);
+          // We need to use the original index when removing
+          removeClassification(responses.length - 1 - index);
         });
         removeCell.appendChild(removeButton);
         row.appendChild(removeCell);
