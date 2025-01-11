@@ -34,11 +34,64 @@ const getAuthToken = async () => {
 const ITEMS_PER_PAGE = 5;
 let currentPage = 1;
 
+// Add this function at the top level
+async function extractAndShowText() {
+  const extractedTextElement = document.getElementById("extracted-text");
+  const sourceElement = document.getElementById("source");
+
+  try {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (!tab) {
+      console.error("No active tab found");
+      return;
+    }
+
+    const url = new URL(tab.url);
+    
+    const scriptOptions = {
+      target: { tabId: tab.id },
+      func: (hostname) => {
+        if (hostname === "twitter.com" || hostname === "x.com") {
+          const tweetTextElement = document.querySelector('[data-testid="tweetText"]');
+          if (tweetTextElement) {
+            return { text: tweetTextElement.innerText, source: "tweet" };
+          }
+          return { text: "Unable to extract tweet text.", source: "tweet" };
+        }
+
+        const selectors = ["#mw-content-text", "main", "article"];
+        for (let selector of selectors) {
+          const element = document.querySelector(selector);
+          if (element && element.innerText.trim()) {
+            return { text: element.innerText.substring(0, 5000), source: selector };
+          }
+        }
+        return { text: document.body.innerText.substring(0, 5000), source: "all" };
+      },
+      args: [url.hostname]
+    };
+
+    const [result] = await chrome.scripting.executeScript(scriptOptions);
+    const pageData = result.result;
+
+    sourceElement.innerText = `Extracted Text Source: ${pageData.source}`;
+    extractedTextElement.style.display = "block";
+    extractedTextElement.innerText = pageData.text;
+  } catch (error) {
+    console.error("Error extracting text:", error);
+    extractedTextElement.style.display = "block";
+    extractedTextElement.innerText = "Error extracting text from page.";
+  }
+}
+
 document.addEventListener("DOMContentLoaded", async () => {
   const classifyButton = document.getElementById("classify");
   const viewResponsesButton = document.getElementById("view-responses");
   const tableBody = document.getElementById("responses-list");
   const responsesTable = document.getElementById("responses-table");
+
+  // Extract and show text immediately
+  await extractAndShowText();
 
   // Function to store classifications
   const storeClassification = async (subject, url) => {
