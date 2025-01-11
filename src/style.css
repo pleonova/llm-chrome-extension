@@ -235,3 +235,18 @@ button:hover {
   font-size: 14px;
   color: #666;
 }
+
+#responses-table tfoot td {
+  text-align: center;
+}
+
+#responses-table tfoot button {
+  display: inline-block;
+  margin: 5px;
+}
+
+#download-csv {
+  display: block;
+  margin: 10px auto;
+  text-align: center;
+}

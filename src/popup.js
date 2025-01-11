@@ -46,31 +46,27 @@ document.addEventListener("DOMContentLoaded", async () => {
     
     // Store in chrome storage
     chrome.storage.sync.get("responses", (data) => {
+      console.log('Current stored data:', data.responses); // Debug log
+      
       let responses = data.responses || [];
       
-      // Find any existing entry with the same URL
-      const existingIndex = responses.findIndex(r => r.url === url);
+      // Find any existing entry with the same URL AND subject
+      const existingIndex = responses.findIndex(r => r.url === url && r.subject === subject);
+      console.log('Found existing entry at index:', existingIndex); // Debug log
       
       if (existingIndex !== -1) {
-        // If subject is the same, update count and timestamp
-        if (responses[existingIndex].subject === subject) {
-          responses[existingIndex] = {
-            ...responses[existingIndex],
-            count: (responses[existingIndex].count || 1) + 1,
-            lastTimestamp: timestamp
-          };
-        } else {
-          // If subject is different, add as new entry
-          responses.push({
-            subject,
-            url,
-            count: 1,
-            firstTimestamp: timestamp,
-            lastTimestamp: timestamp
-          });
-        }
+        // Update existing entry - explicitly handle count
+        const currentCount = Number(responses[existingIndex].count) || 1;
+        console.log('Current count:', currentCount); // Debug log
+        
+        responses[existingIndex] = {
+          ...responses[existingIndex],
+          count: currentCount + 1,
+          lastTimestamp: timestamp
+        };
+        console.log('Updated entry:', responses[existingIndex]); // Debug log
       } else {
-        // Add new entry if URL doesn't exist
+        // Add new entry
         responses.push({
           subject,
           url,
@@ -78,10 +74,11 @@ document.addEventListener("DOMContentLoaded", async () => {
           firstTimestamp: timestamp,
           lastTimestamp: timestamp
         });
+        console.log('Added new entry'); // Debug log
       }
       
       chrome.storage.sync.set({ responses }, () => {
-        console.log("Classification stored");
+        console.log('Final responses array:', responses); // Debug log
         displayResponses(); // Refresh the display
       });
     });
@@ -139,20 +136,19 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (!acc[key]) {
           acc[key] = {
             ...curr,
-            count: 1,
+            count: curr.count || 1,
             firstTimestamp: curr.firstTimestamp || curr.timestamp,
             lastTimestamp: curr.lastTimestamp || curr.timestamp
           };
         } else {
-          acc[key].count += 1;
-          // Update timestamps
-          const currTimestamp = curr.timestamp || curr.lastTimestamp;
-          if (currTimestamp < acc[key].firstTimestamp) {
-            acc[key].firstTimestamp = currTimestamp;
-          }
-          if (currTimestamp > acc[key].lastTimestamp) {
-            acc[key].lastTimestamp = currTimestamp;
-          }
+          acc[key] = {
+            ...curr,
+            count: curr.count || acc[key].count,
+            firstTimestamp: curr.firstTimestamp < acc[key].firstTimestamp ? 
+              curr.firstTimestamp : acc[key].firstTimestamp,
+            lastTimestamp: curr.lastTimestamp > acc[key].lastTimestamp ? 
+              curr.lastTimestamp : acc[key].lastTimestamp
+          };
         }
         return acc;
       }, {});
