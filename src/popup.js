@@ -606,7 +606,7 @@ const appendToGoogleSheet = async (subject, url, timestamp) => {
 const addSpreadsheetManagement = () => {
   const settingsDiv = document.createElement('div');
   settingsDiv.id = 'sheet-settings';
-  settingsDiv.style.marginTop = '20px';
+  settingsDiv.style.marginTop = '1px';
   settingsDiv.style.borderTop = '1px solid #ccc';
   settingsDiv.style.paddingTop = '10px';
 
