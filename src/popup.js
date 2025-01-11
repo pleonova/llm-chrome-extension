@@ -76,13 +76,43 @@ async function extractAndShowText() {
 
     sourceElement.innerText = `Extracted Text Source: ${pageData.source}`;
     extractedTextElement.style.display = "block";
+    extractedTextElement.contentEditable = "true";
     extractedTextElement.innerText = pageData.text;
+    
+    // Setup autosave
+    setupTextEditAutosave();
   } catch (error) {
     console.error("Error extracting text:", error);
     extractedTextElement.style.display = "block";
     extractedTextElement.innerText = "Error extracting text from page.";
   }
 }
+
+let autoSaveTimeout;
+const setupTextEditAutosave = () => {
+  const extractedTextElement = document.getElementById("extracted-text");
+  const extractedTextEditedElement = document.getElementById("extracted-text-edited");
+  const sourceElement = document.getElementById("source");
+  const originalSource = sourceElement.innerText;
+
+  extractedTextElement.addEventListener("input", () => {
+    if (autoSaveTimeout) {
+      clearTimeout(autoSaveTimeout);
+    }
+
+    autoSaveTimeout = setTimeout(() => {
+      const editedText = extractedTextElement.innerText;
+      extractedTextEditedElement.innerText = editedText;
+      
+      // Update source to indicate edited content
+      if (!sourceElement.innerText.endsWith("_edited")) {
+        sourceElement.innerText = originalSource + "_edited";
+      }
+      
+      console.log("Autosaved edited text");
+    }, 500);
+  });
+};
 
 document.addEventListener("DOMContentLoaded", async () => {
   const classifyButton = document.getElementById("classify");
@@ -299,6 +329,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const classifyPageContent = (useLocalModel = false, button) => {
     const resultElement = document.getElementById("result");
     const extractedTextElement = document.getElementById("extracted-text");
+    const extractedTextEditedElement = document.getElementById("extracted-text-edited");
     const sourceElement = document.getElementById("source");
 
     // Update button state
@@ -306,10 +337,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     button.style.backgroundColor = "#cccccc";
     button.innerText = "Classifying...";
 
-    resultElement.innerText = ""; // Clear previous result
-    extractedTextElement.innerText = ""; // Clear previous text
-    extractedTextElement.style.display = "none"; // Hide extracted text
-    sourceElement.innerText = ""; // Clear source
+    // Check if we should use edited text
+    const isEdited = sourceElement.innerText.endsWith("_edited");
+    const textToClassify = isEdited ? extractedTextEditedElement.innerText : extractedTextElement.innerText;
 
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       if (tabs.length === 0) {
@@ -321,88 +351,41 @@ document.addEventListener("DOMContentLoaded", async () => {
         return;
       }
 
-      const url = new URL(tabs[0].url);
-
-      const scriptOptions = {
-        target: { tabId: tabs[0].id },
-        func: (hostname) => {
-          // Extract tweet text if on Twitter
-          if (hostname === "twitter.com" || hostname === "x.com") {
-            const tweetTextElement = document.querySelector('[data-testid="tweetText"]');
-            if (tweetTextElement) {
-              return { text: tweetTextElement.innerText, source: "tweet" };
-            }
-            return { text: "Unable to extract tweet text.", source: "tweet" };
-          }
-
-          // General extraction for other sites
-          const selectors = ["#mw-content-text", "main", "article"];
-          for (let selector of selectors) {
-            const element = document.querySelector(selector);
-            if (element && element.innerText.trim()) {
-              return { text: element.innerText.substring(0, 5000), source: selector };
-            }
-          }
-          return { text: document.body.innerText.substring(0, 5000), source: "all" };
+      // Send to background script for classification
+      chrome.runtime.sendMessage(
+        { 
+          action: "classifyPage", 
+          content: textToClassify,
+          useLocalModel 
         },
-        args: [url.hostname]
-      };
-
-      chrome.scripting.executeScript(scriptOptions, (injectionResults) => {
-        if (chrome.runtime.lastError) {
-          console.error("Error:", chrome.runtime.lastError);
+        (response) => {
           button.disabled = false;
           button.style.backgroundColor = "";
           button.innerText = useLocalModel ? "Classify using Local Model" : "Classify";
-          resultElement.innerText = `Error: ${chrome.runtime.lastError.message}`;
-          return;
-        }
 
-        const pageData = injectionResults[0].result;
+          if (response && response.subject) {
+            resultElement.innerHTML = `This page is classified as: <span>${response.subject}</span>`;
+            storeClassification(response.subject, tabs[0].url);
 
-        sourceElement.innerText = `Extracted Text Source: ${pageData.source}`;
-        extractedTextElement.style.display = "block";
-        extractedTextElement.innerText = pageData.text;
-
-        // Send to background script
-        chrome.runtime.sendMessage(
-          { 
-            action: "classifyPage", 
-            content: pageData.text,
-            useLocalModel 
-          },
-          (response) => {
-            button.disabled = false;
-            button.style.backgroundColor = "";
-            button.innerText = useLocalModel ? "Classify using Local Model" : "Classify";
-
-            if (response && response.subject) {
-              resultElement.innerHTML = `This page is classified as: <span>${response.subject}</span>`;
-              storeClassification(response.subject, tabs[0].url); // Store the classification
-
-              // Remove existing explanation element if present
-              const existingExplanation = document.getElementById('explanation');
-              if (existingExplanation) {
-                existingExplanation.remove();
-              }
-
-              // Add explanation element only if explanation data is present
-              if (response.explanation) {
-                const explanationElement = document.createElement('div');
-                explanationElement.id = 'explanation';
-                explanationElement.innerHTML = `<strong>Explanation:</strong> <em>${response.explanation}</em>`;
-                explanationElement.style.marginBottom = '20px'; // Add spacing
-
-                // Insert explanation before the "View Past Classifications" button
-                const viewResponsesButton = document.getElementById("view-responses");
-                viewResponsesButton.parentNode.insertBefore(explanationElement, viewResponsesButton);
-              }
-            } else {
-              resultElement.innerText = "Classification failed.";
+            const existingExplanation = document.getElementById('explanation');
+            if (existingExplanation) {
+              existingExplanation.remove();
             }
+
+            if (response.explanation) {
+              const explanationElement = document.createElement('div');
+              explanationElement.id = 'explanation';
+              explanationElement.innerHTML = `<strong>Explanation:</strong> <em>${response.explanation}</em>`;
+              explanationElement.style.marginBottom = '20px';
+
+              const viewResponsesButton = document.getElementById("view-responses");
+              viewResponsesButton.parentNode.insertBefore(explanationElement, viewResponsesButton);
+            }
+          } else {
+            resultElement.innerText = "Classification failed.";
           }
-        );
-      });
+        }
+      );
     });
   };
 

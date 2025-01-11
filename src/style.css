@@ -113,6 +113,17 @@ button:hover {
   border: 1px solid #ddd;
   padding: 5px;
   display: none;
+  background-color: #fff;
+  outline: none;
+}
+
+#extracted-text:focus {
+  border-color: #4688f1;
+  box-shadow: 0 0 3px rgba(70, 136, 241, 0.3);
+}
+
+#extracted-text-edited {
+  display: none;
 }
 
 /* Update sheet settings styles */
