@@ -74,7 +74,7 @@ async function extractAndShowText() {
     const [result] = await chrome.scripting.executeScript(scriptOptions);
     const pageData = result.result;
 
-    sourceElement.innerText = `Extracted Text Source: ${pageData.source}`;
+    sourceElement.innerText = `Extracted Text (Source: ${pageData.source})`;
     extractedTextElement.style.display = "block";
     extractedTextElement.contentEditable = "true";
     extractedTextElement.innerText = pageData.text;
@@ -106,7 +106,7 @@ const setupTextEditAutosave = () => {
       
       // Update source to indicate edited content
       if (!sourceElement.innerText.endsWith("_edited")) {
-        sourceElement.innerText = originalSource + "_edited";
+        sourceElement.innerText = originalSource.replace(")", "_edited)");
       }
       
       console.log("Autosaved edited text");
