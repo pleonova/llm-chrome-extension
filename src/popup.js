@@ -46,27 +46,17 @@ document.addEventListener("DOMContentLoaded", async () => {
     
     // Store in chrome storage
     chrome.storage.sync.get("responses", (data) => {
-      console.log('Current stored data:', data.responses); // Debug log
-      
       let responses = data.responses || [];
-      
-      // Find any existing entry with the same URL AND subject
       const existingIndex = responses.findIndex(r => r.url === url && r.subject === subject);
-      console.log('Found existing entry at index:', existingIndex); // Debug log
       
       if (existingIndex !== -1) {
-        // Update existing entry - explicitly handle count
         const currentCount = Number(responses[existingIndex].count) || 1;
-        console.log('Current count:', currentCount); // Debug log
-        
         responses[existingIndex] = {
           ...responses[existingIndex],
           count: currentCount + 1,
           lastTimestamp: timestamp
         };
-        console.log('Updated entry:', responses[existingIndex]); // Debug log
       } else {
-        // Add new entry
         responses.push({
           subject,
           url,
@@ -74,12 +64,11 @@ document.addEventListener("DOMContentLoaded", async () => {
           firstTimestamp: timestamp,
           lastTimestamp: timestamp
         });
-        console.log('Added new entry'); // Debug log
       }
       
       chrome.storage.sync.set({ responses }, () => {
-        console.log('Final responses array:', responses); // Debug log
-        displayResponses(); // Refresh the display
+        // Call displayResponses after storage is updated
+        displayResponses();
       });
     });
 
@@ -544,7 +533,55 @@ const appendToGoogleSheet = async (subject, url, timestamp) => {
     throw new Error('No spreadsheet connected');
   }
 
-  const range = `${GOOGLE_SHEETS_API.SHEET_NAME}!A:C`;
+  // Get existing entries to check for duplicates and update count
+  const range = `${GOOGLE_SHEETS_API.SHEET_NAME}!A:E`;
+  const existingData = await fetch(
+    `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${range}`,
+    {
+      headers: { 'Authorization': `Bearer ${token}` }
+    }
+  ).then(res => res.json());
+
+  // Find existing entry with same URL and subject
+  const entries = existingData.values || [];
+  const existingEntry = entries.find(row => row[0] === subject && row[1] === url);
+
+  // Format timestamp to match classification table format
+  const formatDate = (date) => {
+    return new Date(date).toLocaleString('en-US', {
+      month: 'numeric',
+      day: 'numeric',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: true
+    });
+  };
+
+  let values;
+  if (existingEntry) {
+    // Update existing entry
+    const count = parseInt(existingEntry[2]) + 1;
+    const initialTimestamp = existingEntry[3];
+    values = [[
+      subject, 
+      url, 
+      count, 
+      formatDate(initialTimestamp), 
+      formatDate(timestamp)
+    ]];
+  } else {
+    // New entry
+    values = [[
+      subject, 
+      url, 
+      1, 
+      formatDate(timestamp), 
+      formatDate(timestamp)
+    ]];
+  }
+
   const endpoint = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${range}:append?valueInputOption=USER_ENTERED`;
 
   const response = await fetch(endpoint, {
@@ -553,9 +590,7 @@ const appendToGoogleSheet = async (subject, url, timestamp) => {
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify({
-      values: [[subject, url, new Date(timestamp).toLocaleString()]]
-    })
+    body: JSON.stringify({ values })
   });
 
   if (!response.ok) {
